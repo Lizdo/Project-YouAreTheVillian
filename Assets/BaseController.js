@@ -1,5 +1,7 @@
 #pragma strict
 
+// Interface for Shared Functions
+
 class BaseController extends MonoBehaviour{
 
 ///////////////////////////
@@ -7,7 +9,7 @@ class BaseController extends MonoBehaviour{
 ///////////////////////////
 
 public function Position():Vector3{
-	return Vector3(transform.position.x, 0, transform.position.y);
+	return Vector3(transform.position.x, 0, transform.position.z);
 }
 
 public function Radius():float{

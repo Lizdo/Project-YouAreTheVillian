@@ -10,6 +10,7 @@ private var health:float = 10000;
 ///////////////////////////
 
 function Awake(){
+	Application.targetFrameRate = 60;
 	mainCamera = Camera.main;
 	SpawnAI();
 }
@@ -34,11 +35,11 @@ function Update () {
 // Game Logic
 ///////////////////////////
 
-var AIAmount:int[] = [2,17,6];
-var AIs:Array = new Array();
+private var AIAmount:int[] = [2,17,6];
+public static var AIs:Array = new Array();
 
 function SpawnAI(){
-	var prefab:GameObject = Resources.Load("AI");
+	var prefab:GameObject = Resources.Load("AI", GameObject);
 	var ai:AIController;
 	var i:int;
 
@@ -63,8 +64,11 @@ function SpawnAI(){
 	for (i = 0; i < AIs.length; i++){
 		ai = AIs[i];
 		ai.transform.position = RandomAIPosition();
+		ai.updateID = i;
 		ai.Setup();
 	}
+
+	AIController.totalID = AIs.length;
 
 }
 
