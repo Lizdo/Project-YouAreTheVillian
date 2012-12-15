@@ -154,8 +154,8 @@ private var cameraMode:CameraMode;
 private var targetCameraPosition:Vector3;
 private var targetCameraRotation:Quaternion;
 
-private var cameraRotateSpeed:float = 0.02;
-private var cameraMovementSpeed:float = 1;
+private var cameraRotateSpeed:float = 8;
+private var cameraMovementSpeed:float = 5;
 private var mouseDownCameraTravelSpeed:float = 180;
 private var initmouseDownCameraRotationY:float;
 
@@ -185,7 +185,7 @@ private function UpdateCamera(){
 		if (Quaternion.Dot(mainCamera.transform.rotation, targetCameraRotation) < 0.01){
 			mainCamera.transform.rotation = targetCameraRotation;
 		}else{
-			mainCamera.transform.rotation = Quaternion.Slerp(mainCamera.transform.rotation, targetCameraRotation, Time.time * cameraRotateSpeed);
+			mainCamera.transform.rotation = Quaternion.Lerp(mainCamera.transform.rotation, targetCameraRotation, Time.deltaTime * cameraRotateSpeed);
 		}
 	}
 
@@ -194,13 +194,15 @@ private function UpdateCamera(){
 			mainCamera.transform.position = targetCameraPosition;
 		}
 		else{
-			mainCamera.transform.position = Vector3.Lerp(mainCamera.transform.position, targetCameraPosition, Time.time * cameraMovementSpeed);
+			// TODO: Rotate Camera around Camera Targt
+			mainCamera.transform.position = Vector3.Slerp(mainCamera.transform.position, targetCameraPosition, Time.deltaTime * cameraMovementSpeed);
 		}
 	}
 
 	if (mouseDown){
 		var degreeToRotate:float = mouseDownDistanceValue * mouseDownCameraTravelSpeed;
 		mainCamera.transform.rotation = Quaternion.Euler(defaultCameraAngle, initmouseDownCameraRotationY+degreeToRotate, 0);
+		mainCamera.transform.position = transform.position + Quaternion.Euler(0, initmouseDownCameraRotationY+degreeToRotate + 180, 0) * defaultCameraOffset;
 	}
 
 }
