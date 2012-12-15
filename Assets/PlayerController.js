@@ -1,6 +1,5 @@
 #pragma strict
 
-
 private var mainCamera:Camera;
 
 ///////////////////////////
@@ -16,9 +15,52 @@ private function Start () {
 }
 
 private function Update () {
+	UpdateInput();
+	UpdateMovement();
 	UpdateCamera();
 }
 
+///////////////////////////
+// Input
+///////////////////////////
+
+private var inputHorizontalValue:float;
+private var inputVerticalValue:float;
+private var mouseDown:boolean;
+
+private function UpdateInput () {
+	inputHorizontalValue = Input.GetAxis ("Horizontal");
+	inputVerticalValue = Input.GetAxis ("Vertical");	
+	mouseDown = false;
+
+	if (Input.GetKey(KeyCode.Mouse0)){
+		mouseDown = true;
+	}
+}
+
+
+///////////////////////////
+// Movement
+///////////////////////////
+
+private var speed:float = 30;
+private var reverseSpeed:float = 5;
+
+private var rotateSpeed:float = 20;
+
+private function UpdateMovement () {
+	var rotationY:float = transform.rotation.eulerAngles.y;
+	if (inputVerticalValue > 0){
+		// Move Forawrd
+		transform.position -= Quaternion.Euler(0,rotationY,0) * Vector3.forward * Time.deltaTime * inputVerticalValue * speed;
+	}else{
+		transform.position -= Quaternion.Euler(0,rotationY,0) * Vector3.forward * Time.deltaTime * inputVerticalValue * reverseSpeed;
+	}
+	if (inputHorizontalValue != 0){
+		rotationY += inputHorizontalValue * rotateSpeed * Time.deltaTime;
+		transform.rotation = Quaternion.Euler(transform.rotation.eulerAngles.x, rotationY, transform.rotation.eulerAngles.z);
+	}
+}
 
 ///////////////////////////
 // Camera
