@@ -157,12 +157,18 @@ private var targetCameraRotation:Quaternion;
 private var cameraRotateSpeed:float = 8;
 private var cameraMovementSpeed:float = 5;
 private var mouseDownCameraTravelSpeed:float = 180;
+private var mouseDownRotateDegree:float;
 private var initmouseDownCameraRotationY:float;
+
+private var returnFromMouseDown:boolean;
 
 private function UpdateCamera(){
 	if (mouseDown){
 		cameraMode = CameraMode.Following;
 	}else{
+		if (cameraMode == CameraMode.Following){
+			returnFromMouseDown = true;
+		}
 		cameraMode = CameraMode.Relative;
 		SetDefaultCameraTarget();
 	}
@@ -200,9 +206,20 @@ private function UpdateCamera(){
 	}
 
 	if (mouseDown){
-		var degreeToRotate:float = mouseDownDistanceValue * mouseDownCameraTravelSpeed;
-		mainCamera.transform.rotation = Quaternion.Euler(defaultCameraAngle, initmouseDownCameraRotationY+degreeToRotate, 0);
-		mainCamera.transform.position = transform.position + Quaternion.Euler(0, initmouseDownCameraRotationY+degreeToRotate + 180, 0) * defaultCameraOffset;
+		mouseDownRotateDegree = mouseDownDistanceValue * mouseDownCameraTravelSpeed;
+		mainCamera.transform.rotation = Quaternion.Euler(defaultCameraAngle, initmouseDownCameraRotationY+mouseDownRotateDegree, 0);
+		mainCamera.transform.position = transform.position + Quaternion.Euler(0, initmouseDownCameraRotationY+mouseDownRotateDegree + 180, 0) * defaultCameraOffset;
+	}
+
+	if (returnFromMouseDown){
+		mouseDownRotateDegree = Mathf.Lerp(mouseDownRotateDegree, 0, cameraMovementSpeed * Time.deltaTime);
+		if (Mathf.Abs(mouseDownRotateDegree) <= 1){
+			returnFromMouseDown = false;
+			mouseDownRotateDegree = 0;
+		}
+		//Lerp Back Use the same Algorithm...
+		mainCamera.transform.rotation = Quaternion.Euler(defaultCameraAngle, initmouseDownCameraRotationY+mouseDownRotateDegree, 0);
+		mainCamera.transform.position = transform.position + Quaternion.Euler(0, initmouseDownCameraRotationY+mouseDownRotateDegree + 180, 0) * defaultCameraOffset;		
 	}
 
 }
