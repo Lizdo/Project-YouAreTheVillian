@@ -1,6 +1,9 @@
 #pragma strict
 
+class PlayerController extends BaseController{
+
 private var mainCamera:Camera;
+private var health:float = 10000;
 
 ///////////////////////////
 // Main Updates
@@ -8,6 +11,7 @@ private var mainCamera:Camera;
 
 function Awake(){
 	mainCamera = Camera.main;
+	SpawnAI();
 }
 
 function Start () {
@@ -19,6 +23,57 @@ function Update () {
 	UpdateMovement();
 	UpdateCamera();
 }
+
+
+///////////////////////////
+// Public Helper Functions
+///////////////////////////
+
+
+///////////////////////////
+// Game Logic
+///////////////////////////
+
+var AIAmount:int[] = [2,17,6];
+var AIs:Array = new Array();
+
+function SpawnAI(){
+	var prefab:GameObject = Resources.Load("AI");
+	var ai:AIController;
+	var i:int;
+
+	for (i = AIAmount[0] - 1; i >= 0; i--) {
+		ai = Instantiate(prefab).GetComponent(AIController);
+		ai.aiClass = AIClass.Tank;
+		AIs.Add(ai);
+	};
+
+	for (i = AIAmount[1] - 1; i >= 0; i--) {
+		ai = Instantiate(prefab).GetComponent(AIController);
+		ai.aiClass = AIClass.DPS;
+		AIs.Add(ai);
+	};
+
+	for (i = AIAmount[2] - 1; i >= 0; i--) {
+		ai = Instantiate(prefab).GetComponent(AIController);
+		ai.aiClass = AIClass.Healer;
+		AIs.Add(ai);
+	};
+
+	for (i = 0; i < AIs.length; i++){
+		ai = AIs[i];
+		ai.transform.position = RandomAIPosition();
+		ai.Setup();
+	}
+
+}
+
+private var aiSpawnDistance:float = 100.0;
+
+function RandomAIPosition():Vector3{
+	return Quaternion.Euler(0, Random.value * 360, 0) * Vector3(1,0,0) * aiSpawnDistance;
+}
+
 
 ///////////////////////////
 // Input
@@ -167,4 +222,6 @@ private function SnapCameraToTarget(){
 		mainCamera.transform.position = targetCameraPosition;
 	}
 	mainCamera.transform.rotation = targetCameraRotation;
+}
+
 }

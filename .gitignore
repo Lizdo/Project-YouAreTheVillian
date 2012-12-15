@@ -4,3 +4,4 @@ TEMP
 *.dll
 *.mdb
 Library/ScriptAssemblies/
+*sublime*
