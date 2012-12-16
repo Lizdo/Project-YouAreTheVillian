@@ -10,7 +10,7 @@ class AIController extends BaseController{
 
 public var aiClass:AIClass;
 
-private var health:float;
+
 private var dps:float;
 private var speed:float;
 private var color:Color;
@@ -32,6 +32,7 @@ function Awake (){
 }
 
 function Start () {
+	health = maxHealth;
 }
 
 function Update () {
@@ -55,6 +56,7 @@ function SlowUpdate(){
 	UpdateMovementTargetSlow();
 }
 
+
 ///////////////////////////
 // Setup
 ///////////////////////////
@@ -62,28 +64,28 @@ function SlowUpdate(){
 public function Setup(){
 	switch (aiClass){
 		case AIClass.Tank:
-			health = 1000;
+			maxHealth = 1000;
 			dps = 15;
 			speed = 20;
 			color = ColorWithHex(0xa33625);
 			attackRadius = 10;
 			break;
 		case AIClass.DPS:
-			health = 500;
+			maxHealth = 500;
 			dps = 30;
 			speed = 25;
 			color = ColorWithHex(0x6587a3);
 			attackRadius = 20;
 			break;
 		case AIClass.Healer:
-			health = 800;
+			maxHealth = 800;
 			dps = 10;
 			speed = 10;
 			color = ColorWithHex(0x56a362);
 			attackRadius = 15;
 			break;
 	}
-	renderer.material.color = color;
+	Renderer().material.color = color;
 }
 
 static function ColorWithHex(hex:int){
@@ -115,6 +117,13 @@ private function UpdateAI(){
 	if (isDead)
 		return;
 
+	// Base Attack
+	if (PositionIsValid()){
+		yield WaitForAnimation("Attack", 0.6, true);
+		DealDamage();
+		yield WaitForAnimation("Attack", 1, false);
+	}
+
 	switch (aiClass){
 		case AIClass.Tank:
 			UpdateTankAI();
@@ -130,8 +139,16 @@ private function UpdateAI(){
 
 private function Die(){
 	color = Color.gray;
-	renderer.material.color = color;
+	Renderer().material.color = color;
 	//TODO: Add some timed event
+}
+
+private function DealDamage(){
+	if (target == player){
+		player.TakeDamage(dps);
+	}else{
+		target.Heal(dps);
+	}
 }
 
 private function UpdateHealerAI(){
@@ -240,7 +257,18 @@ private function TargetPositionOccupied():boolean{
 	return false;
 }
 
+private function PositionIsValid(){
+	if (!target || targetPosition == Vector3.zero)
+		return false;
+	var distance:float = Vector3.Distance(Position(), target.Position());
+	if (distance <= attackRadius && distance > attackRadius * targetTooCloseRatio)
+		return true;
+	return false;	
+}
+
 private function TargetPositionIsValid(){
+	if (!target || targetPosition == Vector3.zero)
+		return false;
 	var distance:float = Vector3.Distance(targetPosition, target.Position());
 	if (distance <= attackRadius && distance > attackRadius * targetTooCloseRatio)
 		return true;
@@ -270,7 +298,8 @@ private function UpdateMovement(){
 }
 
 private function RotateTowardTarget(){
-	transform.rotation = Quaternion.LookRotation(target.Position() - Position());
+	if (target)
+		transform.rotation = Quaternion.LookRotation(target.Position() - Position());
 }
 
 private function MoveTowardTarget(){
@@ -290,8 +319,8 @@ private function MoveTowardTarget(){
 	transform.position = Vector3.MoveTowards(transform.position, targetPosition, speed * Time.deltaTime);
 
 
-	if (transform.position.y < 0 || transform.position.y > 10){
-		Debug.LogError("Movement Error");
+	if (transform.position.y < -10 || transform.position.y > 10){
+		//Debug.LogError("Movement Error");
 	}
 
 }

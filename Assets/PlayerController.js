@@ -3,7 +3,6 @@
 class PlayerController extends BaseController{
 
 private var mainCamera:Camera;
-private var health:float = 10000;
 
 ///////////////////////////
 // Main Updates
@@ -17,6 +16,8 @@ function Awake(){
 
 function Start () {
 	AlignCameraToBack();
+	maxHealth = 10000;
+	health = maxHealth;
 }
 
 function Update () {
@@ -27,8 +28,16 @@ function Update () {
 
 
 ///////////////////////////
-// Public Helper Functions
+// Public  Functions
 ///////////////////////////
+
+
+
+///////////////////////////
+// GUI
+///////////////////////////
+
+
 
 
 ///////////////////////////
@@ -224,8 +233,8 @@ private function UpdateCamera(){
 
 }
 
-private var defaultCameraOffset:Vector3 = Vector3(0, 50.0, 40.0);
-private var defaultCameraAngle:float = 35;
+private var defaultCameraOffset:Vector3 = Vector3(0, 70.0, 30.0);
+private var defaultCameraAngle:float = 50;
 
 private function AlignCameraToBack(){
 	cameraMode = CameraMode.Relative;
