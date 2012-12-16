@@ -24,6 +24,8 @@ function Awake(){
 	SpawnAI();
 }
 
+private var hint:GUIText;
+
 function Start () {
 	AlignCameraToBack();
 	maxHealth = 100000;
@@ -33,6 +35,10 @@ function Start () {
 	targetArrow = Instantiate(arrow, Vector3.zero, Quaternion.identity).GetComponent(GUIText);
 	targetArrow.material.color = ColorWithHex(0x741909);
 	state = State.Moving;
+
+	hint = gameObject.Find("Hint").GetComponent(GUIText);
+	hint.text = "Use WSAD to move, Left Mouse to drag camera, 1/2/3/4 for Abilities.";
+	hint.material.color = ColorWithHex(0xe2dfd9);
 }
 
 function Update () {
@@ -57,9 +63,13 @@ private var healthBarWidth:float;
 
 private var aiHPBarHeight:float = 5;
 private var aiHPBarMarginX:float = 20;
-private var aiHPBarMarginY:float = 200;
+private var aiHPBarMarginY:float = 100;
 private var aiHPBarPadding:float = 5;
 private var aiHPBarWidth:float = 100;
+
+private var abilityButtonMargin:float = 20;
+private var abilityButtonSize:float = 80;
+private var abilityButtonPadding:float = 10;
 
 function OnGUI () {
 
@@ -107,6 +117,32 @@ function OnGUI () {
 		}
 
 	GUILayout.EndArea();	
+
+	GUI.color = Color.white;
+
+	// Skill Buttons
+	for (i = 0; i < 4; i++){
+		var r:Rect = Rect(abilityButtonMargin + i * (abilityButtonSize + abilityButtonPadding),
+			Screen.height - abilityButtonMargin - abilityButtonSize,
+			abilityButtonSize, abilityButtonSize);
+		var ability:Ability = i;
+
+		if (!AbilityVisible(i))
+			return;
+
+		var t:Texture = Resources.Load(ability.ToString(), Texture);
+
+		if (!AbilityAvailable(i)){
+			GUI.color = Color(0.2, 0.2, 0.2, 0.2);
+		}
+
+		if (GUI.Button (r, GUIContent(ability.ToString(), t))) {
+			UseAbility(i);
+		}
+
+		GUI.color = Color.white;
+	}
+
 
 }
 
@@ -162,7 +198,18 @@ private function ClosestEnemiesInFront():AIController{
 	return closestAI;
 }
 
+private function AbilityVisible(i:int):boolean{
+	return true;
+}
+
 private function AbilityAvailable(i:int):boolean{
+	// TODO: Implement the other three abilities.
+	if (i > 0)
+		return false;
+
+	if (!AbilityVisible(i))
+		return false;
+
 	// Another Ability In Progress444
 	if (state == State.UsingAbility)
 		return false;
@@ -216,7 +263,7 @@ private function DealDamageToTarget(ai:AIController){
 
 private function AddDamageTextOnTarget(ai:AIController, amount:float){
 	var v:Vector3 = Camera.main.WorldToViewportPoint(ai.Center());
-	SpawnFloatingText(amount.ToString(), v.x, v.y, Color.red);
+	SpawnFloatingText(amount.ToString(), v.x, v.y, ColorWithHex(0x741909));
 }
 
 ///////////////////////////
@@ -362,24 +409,29 @@ private var mouseDownCameraTravelSpeed:float = 180;
 private var mouseDownRotateDegree:float;
 private var initmouseDownCameraRotationY:float;
 
+private var cameraDragged:boolean;
 private var returnFromMouseDown:boolean;
 
 private function UpdateCamera(){
 	if (mouseDown){
-		cameraMode = CameraMode.Following;
-	}else{
-		if (cameraMode == CameraMode.Following){
-			returnFromMouseDown = true;
-		}
+		cameraMode = CameraMode.Free;
+	}
+
+	if (cameraDragged && Mathf.Abs(inputVerticalValue) > 0.1){
+		returnFromMouseDown = true;
+	}
+
+	if (!mouseDown && !cameraDragged){
 		cameraMode = CameraMode.Relative;
 		SetDefaultCameraTarget();
 	}
+
 
 	var updatePosition:boolean = false;
 	var updateRotation:boolean = false;
 	switch (cameraMode){
 		case CameraMode.Free:
-			return;
+			break;
 		case CameraMode.Following:
 			updatePosition = true;
 			break;
@@ -408,6 +460,7 @@ private function UpdateCamera(){
 	}
 
 	if (mouseDown){
+		cameraDragged = true;
 		mouseDownRotateDegree = mouseDownDistanceValue * mouseDownCameraTravelSpeed;
 		mainCamera.transform.rotation = Quaternion.Euler(defaultCameraAngle, initmouseDownCameraRotationY+mouseDownRotateDegree, 0);
 		mainCamera.transform.position = transform.position + Quaternion.Euler(0, initmouseDownCameraRotationY+mouseDownRotateDegree + 180, 0) * defaultCameraOffset;
@@ -417,6 +470,7 @@ private function UpdateCamera(){
 		mouseDownRotateDegree = Mathf.Lerp(mouseDownRotateDegree, 0, cameraMovementSpeed * Time.deltaTime);
 		if (Mathf.Abs(mouseDownRotateDegree) <= 1){
 			returnFromMouseDown = false;
+			cameraDragged = false;
 			mouseDownRotateDegree = 0;
 		}
 		//Lerp Back Use the same Algorithm...
@@ -427,7 +481,7 @@ private function UpdateCamera(){
 }
 
 private var defaultCameraOffset:Vector3 = Vector3(0, 70.0, 30.0);
-private var defaultCameraAngle:float = 50;
+private var defaultCameraAngle:float = 70;
 
 private function AlignCameraToBack(){
 	cameraMode = CameraMode.Relative;
