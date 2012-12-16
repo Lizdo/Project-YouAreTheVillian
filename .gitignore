@@ -5,3 +5,4 @@ TEMP
 *.mdb
 Library/ScriptAssemblies/
 *sublime*
+.DS_Store
