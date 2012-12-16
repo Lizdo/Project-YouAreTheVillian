@@ -8,8 +8,32 @@ class BaseController extends MonoBehaviour{
 // Public Helper Functions
 ///////////////////////////
 
-protected var maxHealth:float;
-protected var health:float;
+public var maxHealth:float;
+public var health:float;
+
+// Cached reference
+private var _renderer:Renderer;
+private var _animation:Animation;
+
+
+static function ColorWithHex(hex:int){
+    // 0xRRGGBB
+    var r:float = ((hex & 0xFF0000) >> 16)/255.0;
+    var g:float = ((hex & 0xFF00) >> 8)/255.0;
+    var b:float = (hex & 0xFF)/255.0;
+    return Color(r,g,b,1.0);
+}
+
+public function SpawnFloatingText(text:String, x: float, y: float, color:Color){
+    x = Mathf.Clamp(x,0.05,0.95); // clamp position to screen to ensure
+    y = Mathf.Clamp(y,0.05,0.9);  // the string will be visible
+
+    var prefab:GameObject = Resources.Load("FloatingText", GameObject);
+    var t:FloatingText = Instantiate(prefab,Vector3(x,y,0),Quaternion.identity).GetComponent(FloatingText);
+    t.guiText.text = text;
+    t.color = color;
+}
+
 
 public function Position():Vector3{
 	return Vector3(transform.position.x, 0, transform.position.z);
@@ -28,7 +52,13 @@ public function Radius():float{
 	return Renderer().bounds.extents.magnitude;
 }
 
+public function Center():Vector3{
+	return Renderer().bounds.center;
+}
+
 public function TakeDamage(amount:float){
+	//var v:Vector3 = Camera.main.WorldToViewportPoint(Center());
+	//SpawnFloatingText(amount.ToString(), v.x, v.y, Color.red);
 	health -= amount;
 	if (health < 0)
 		health = 0;
@@ -40,8 +70,6 @@ public function Heal(amount:float){
 		health = maxHealth;
 }
 
-private var _renderer:Renderer;
-private var _animation:Animation;
 
 //Wait for an animation to be a certain amount complete
 public function WaitForAnimation(name:String, ratio:float, play:boolean){

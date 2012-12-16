@@ -13,7 +13,7 @@ public var aiClass:AIClass;
 
 private var dps:float;
 private var speed:float;
-private var color:Color;
+public var color:Color;
 private var attackRadius:float;
 private var isDead:boolean = false;
 
@@ -88,14 +88,6 @@ public function Setup(){
 	Renderer().material.color = color;
 }
 
-static function ColorWithHex(hex:int){
-    // 0xRRGGBB
-    var r:float = ((hex & 0xFF0000) >> 16)/255.0;
-    var g:float = ((hex & 0xFF00) >> 8)/255.0;
-    var b:float = (hex & 0xFF)/255.0;
-    return Color(r,g,b,1.0);
-}
-
 
 ///////////////////////////
 // Public Functions
@@ -118,10 +110,8 @@ private function UpdateAI(){
 		return;
 
 	// Base Attack
-	if (PositionIsValid()){
-		yield WaitForAnimation("Attack", 0.6, true);
-		DealDamage();
-		yield WaitForAnimation("Attack", 1, false);
+	if (!attackInProgress && PositionIsValid()){
+		Attack();
 	}
 
 	switch (aiClass){
@@ -135,6 +125,17 @@ private function UpdateAI(){
 			UpdateHealerAI();
 			break;
 	}
+}
+
+private var attackInProgress:boolean = false;
+
+private function Attack(){
+	attackInProgress = true;
+	yield WaitForAnimation("Attack", 0.6, true);
+	DealDamage();
+	//yield WaitForAnimation("Attack", 0.99, false);
+	yield WaitForSeconds(Random.value * 0.5 + 0.1);
+	attackInProgress = false;
 }
 
 private function Die(){

@@ -4,6 +4,16 @@ class PlayerController extends BaseController{
 
 private var mainCamera:Camera;
 
+enum State{
+	Moving,
+	UsingAbility
+}
+
+private var currentAbility:Ability;
+private var state:State;
+
+private var enraged:boolean;
+
 ///////////////////////////
 // Main Updates
 ///////////////////////////
@@ -16,29 +26,198 @@ function Awake(){
 
 function Start () {
 	AlignCameraToBack();
-	maxHealth = 10000;
+	maxHealth = 100000;
 	health = maxHealth;
+	skin = Resources.Load("GUI", GUISkin);
+	var arrow:GameObject = Resources.Load("Arrow", GameObject);
+	targetArrow = Instantiate(arrow, Vector3.zero, Quaternion.identity).GetComponent(GUIText);
+	targetArrow.material.color = ColorWithHex(0x741909);
+	state = State.Moving;
 }
 
 function Update () {
 	UpdateInput();
-	UpdateMovement();
+	UpdateTarget();
+	if (state == State.Moving)
+		UpdateMovement();
 	UpdateCamera();
 }
-
-
-///////////////////////////
-// Public  Functions
-///////////////////////////
-
 
 
 ///////////////////////////
 // GUI
 ///////////////////////////
 
+private var skin:GUISkin;
+
+private var healthBarHeight:float = 20;
+private var healthBarMargin:float = 20;
+private var healthBarPadding:float = 5;
+private var healthBarWidth:float;
+
+private var aiHPBarHeight:float = 5;
+private var aiHPBarMarginX:float = 20;
+private var aiHPBarMarginY:float = 200;
+private var aiHPBarPadding:float = 5;
+private var aiHPBarWidth:float = 100;
+
+function OnGUI () {
+
+	GUI.skin = skin;
+
+	// if (GUI.Button (Rect (10,10,150,100), "I am a button")) {
+	// 	print ("You clicked the button!");
+	// }
+
+	//GUI.Box(Rect(healthBarMargin,0,Screen.width,Screen.height),"This is a title");
+
+	healthBarWidth = Screen.width - healthBarMargin * 2;
+	var bar:Rect;
+
+	// Player HP
+
+	GUI.color = ColorWithHex(0x9cbcbd);
+	GUILayout.BeginArea(Rect(healthBarMargin, healthBarMargin, healthBarWidth, healthBarHeight),  GUIStyle("BarEmpty"));
+
+		GUI.color = ColorWithHex(0x742f15);
+	    bar = Rect(healthBarPadding, healthBarPadding,
+	        health/maxHealth * (healthBarWidth - healthBarPadding * 2),
+	        healthBarHeight - healthBarPadding * 2);
+	    GUILayout.BeginArea(bar, GUIStyle("BarFull"));
+	    GUILayout.EndArea();
+
+	GUILayout.EndArea();
 
 
+	// AI HP
+
+	var aiHPBarTotalHeight:float = AIs.length * (aiHPBarHeight+aiHPBarPadding) + aiHPBarPadding;
+
+	GUI.color = ColorWithHex(0x9cbcbd);
+	GUILayout.BeginArea(Rect(aiHPBarMarginX, aiHPBarMarginY, aiHPBarWidth, aiHPBarTotalHeight),  GUIStyle("BarEmpty"));
+
+		for (var i:int = 0; i < AIs.length; i++){
+			var ai:AIController = AIs[i];
+			GUI.color = ai.color;
+		    bar = Rect(aiHPBarPadding, aiHPBarPadding+i*(aiHPBarHeight+aiHPBarPadding),
+		        ai.health/ai.maxHealth * (aiHPBarWidth - aiHPBarPadding * 2),
+		        aiHPBarHeight);
+		    GUILayout.BeginArea(bar, GUIStyle("BarFull"));
+		    GUILayout.EndArea();
+		}
+
+	GUILayout.EndArea();	
+
+}
+
+///////////////////////////
+// Abilities
+///////////////////////////
+
+enum Ability{
+	BaseAttack,
+	Cleave,
+	Stomp,
+	Corruption
+}
+
+private var abilityTargetLocation:Vector3;
+
+private var AbilityCastTime:float[] = [1.5,3,5,3];
+private var abilityTransitionTime:float = 0.5;
+private var AbilityCooldownTime:float[] = [0f,10f,20f,10f];
+private var AbilityLastUsed:float[] = [-100f,-100f,-100f,-100f];
+private var AbilityDamage:float[] = [100f, 100f, 100f, 100f];
+private var AbilityRange:float[] = [30f, 20f, 20f, 20f];
+
+private var target:AIController;
+private var targetArrow:GUIText;
+
+private function UpdateTarget(){
+	target = ClosestEnemiesInFront();
+	if (target){
+		targetArrow.enabled = true;
+		var v:Vector3 = Camera.main.WorldToViewportPoint(target.Center());
+		targetArrow.transform.position = Vector3(v.x, v.y + 0.02, 0);
+	}else{
+		targetArrow.enabled = false;
+	}
+}
+
+
+private function ClosestEnemiesInFront():AIController{
+	var closestDistance:float = 30;
+	var closestAI:AIController;
+
+	for (var ai:AIController in AIs){
+		var distance:float = Vector3.Distance(ai.Position(), Position());
+		if (distance < closestDistance){
+			var offset:Quaternion = Quaternion.LookRotation(Position() - ai.Position());
+			if (Mathf.Abs(Quaternion.Angle(transform.rotation, offset)) < 100){
+				closestDistance = distance;
+				closestAI = ai;
+			}
+		}
+	}
+	return closestAI;
+}
+
+private function AbilityAvailable(i:int):boolean{
+	// Another Ability In Progress444
+	if (state == State.UsingAbility)
+		return false;
+
+	// In CoolDown
+	if (Time.time - AbilityLastUsed[i] < AbilityCooldownTime[i])
+		return false;
+
+	return true;
+}
+
+private function UseAbility(i:int){
+	if (!AbilityAvailable(i))
+		return;
+	state = State.UsingAbility;
+	currentAbility = i;
+	print("Using Ability: " + currentAbility);
+	if (target)
+		abilityTargetLocation = target.Position();
+	ProcessAbility();
+}
+
+private function ProcessAbility(){
+	yield WaitForSeconds(AbilityCastTime[currentAbility]);
+	// Deal Damage at target Location
+	print(Time.time + "Ability Casted: " + currentAbility);
+	ResolveAbility();
+	yield WaitForSeconds(abilityTransitionTime);
+	print(Time.time + "Ability Resolved: " + currentAbility);
+	AbilityLastUsed[currentAbility] = Time.time;
+	state = State.Moving;
+}
+
+private function ResolveAbility(){
+	switch (currentAbility){
+		case Ability.BaseAttack:
+			if (!target)
+				return;
+			if (Vector3.Distance(target.transform.position, transform.position) < AbilityRange[currentAbility]){
+				DealDamageToTarget(target);
+			}
+	}
+}
+
+private function DealDamageToTarget(ai:AIController){
+	var amount:float = AbilityDamage[currentAbility];
+	print("Damaging" + ai.ToString());
+	ai.TakeDamage(amount);
+	AddDamageTextOnTarget(ai, amount);
+}
+
+private function AddDamageTextOnTarget(ai:AIController, amount:float){
+	var v:Vector3 = Camera.main.WorldToViewportPoint(ai.Center());
+	SpawnFloatingText(amount.ToString(), v.x, v.y, Color.red);
+}
 
 ///////////////////////////
 // Game Logic
@@ -112,6 +291,20 @@ private function UpdateInput () {
 		mouseDownDistanceValue = -(Input.mousePosition.x - initMouseDownPosition.x)/Screen.width;
 	}else{
 		mouseDown = false;
+	}
+
+
+	if (Input.GetKey(KeyCode.Alpha1) || Input.GetKey(KeyCode.Keypad1)){
+		UseAbility(0);
+	}
+	if (Input.GetKey(KeyCode.Alpha2) || Input.GetKey(KeyCode.Keypad2)){
+		UseAbility(1);
+	}
+	if (Input.GetKey(KeyCode.Alpha3) || Input.GetKey(KeyCode.Keypad3)){
+		UseAbility(2);
+	}
+	if (Input.GetKey(KeyCode.Alpha4) || Input.GetKey(KeyCode.Keypad4)){
+		UseAbility(3);
 	}
 }
 
