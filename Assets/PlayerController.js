@@ -5,7 +5,9 @@ class PlayerController extends BaseController{
 private var mainCamera:Camera;
 
 enum State{
-	Moving,
+	Idle,
+	MovingForward,
+	MovingBackward,
 	UsingAbility
 }
 
@@ -34,17 +36,17 @@ function Start () {
 	var arrow:GameObject = Resources.Load("Arrow", GameObject);
 	targetArrow = Instantiate(arrow, Vector3.zero, Quaternion.identity).GetComponent(GUIText);
 	targetArrow.material.color = ColorWithHex(0x741909);
-	state = State.Moving;
+	SetState(State.Idle);
 
 	hint = gameObject.Find("Hint").GetComponent(GUIText);
-	hint.text = "Use WSAD to move, Left Mouse to drag camera, 1/2/3/4 for Abilities.";
+	hint.text = "Use WSAD to move, Left Mouse Button to drag camera, 1/2/3/4 for Abilities.";
 	hint.material.color = ColorWithHex(0xe2dfd9);
 }
 
 function Update () {
 	UpdateInput();
 	UpdateTarget();
-	if (state == State.Moving)
+	if (state != State.UsingAbility)
 		UpdateMovement();
 	UpdateCamera();
 }
@@ -224,7 +226,7 @@ private function AbilityAvailable(i:int):boolean{
 private function UseAbility(i:int){
 	if (!AbilityAvailable(i))
 		return;
-	state = State.UsingAbility;
+	SetState(State.UsingAbility);
 	currentAbility = i;
 	print("Using Ability: " + currentAbility);
 	if (target)
@@ -237,10 +239,11 @@ private function ProcessAbility(){
 	// Deal Damage at target Location
 	print(Time.time + "Ability Casted: " + currentAbility);
 	ResolveAbility();
+	PlayAbilityAnimation(false);
 	yield WaitForSeconds(abilityTransitionTime);
 	print(Time.time + "Ability Resolved: " + currentAbility);
 	AbilityLastUsed[currentAbility] = Time.time;
-	state = State.Moving;
+	SetState(State.Idle);
 }
 
 private function ResolveAbility(){
@@ -264,6 +267,56 @@ private function DealDamageToTarget(ai:AIController){
 private function AddDamageTextOnTarget(ai:AIController, amount:float){
 	var v:Vector3 = Camera.main.WorldToViewportPoint(ai.Center());
 	SpawnFloatingText(amount.ToString(), v.x, v.y, ColorWithHex(0x741909));
+}
+
+///////////////////////////
+// Animation
+///////////////////////////
+
+private function SetState(newState:State){
+	if (newState == state)
+		return;
+	state = newState;
+
+	switch (state){
+		case State.Idle:
+			PlayAnimation("Idle");
+			break;
+		case State.MovingForward:
+			PlayAnimation("MoveForward");
+			break;
+		case State.MovingBackward:
+			PlayAnimation("MoveBackward");
+			break;
+		case State.UsingAbility:
+			PlayAbilityAnimation(true);
+	}
+}
+
+private function PlayAnimation(animName:String){
+	animation.CrossFade(animName);
+}
+
+
+private function PlayAbilityAnimation(attackAnim:boolean){
+	//var animName = currentAbility.ToString();
+	var animName = "BaseAttack";
+
+	if (!attackAnim){
+		animName += "Transition";
+	}
+
+	var animationState:AnimationState = animation[animName];
+	var length:float = animationState.length;
+
+	if (attackAnim){
+		animationState.speed = length/(AbilityCastTime[currentAbility]);
+	}else{
+		animationState.speed = length/abilityTransitionTime;
+	}
+
+
+	animation.CrossFade(animName);
 }
 
 ///////////////////////////
@@ -382,8 +435,12 @@ private function UpdateMovement () {
 	if (inputVerticalValue > 0){
 		// Move Forawrd
 		transform.position -= Quaternion.Euler(0,rotationY,0) * Vector3.forward * Time.deltaTime * inputVerticalValue * speed;
-	}else{
+		SetState(State.MovingForward);
+	}else if (inputVerticalValue < 0){
 		transform.position -= Quaternion.Euler(0,rotationY,0) * Vector3.forward * Time.deltaTime * inputVerticalValue * reverseSpeed;
+		SetState(State.MovingBackward);
+	}else{
+		SetState(State.Idle);
 	}
 
 }

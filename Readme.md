@@ -2,7 +2,7 @@
 
 You play as a dungeon boss, prepare yourself for the challenge of the 25 adventurers!
 
-This is my first test entry for LD25… However it seems not possible to finish before the 2 day deadline… Too much distractions during the whole course. Will try to wrap up all the remaining features in the next week.
+This is my first test entry for LD25… However it seems not possible to finish before the 2 day deadline now, too much distractions during the whole course. Will try to wrap up all the remaining features in the next week.
 
 ###Current Features:
 
@@ -20,3 +20,10 @@ This is my first test entry for LD25… However it seems not possible to finish 
 
 ###[Play the current build!](http://htmlpreview.github.com/?https://github.com/Lizdo/Project-YouAreTheVillian/blob/master/Export/Export.html)
 (Not very playable...)
+
+
+#### Update (12/17)
+
+- Move/Base Attack Animation
+- Flexable Animation Length based on Tweakables
+- Coming Tomorrow: Turn Animation, Cleave Ability

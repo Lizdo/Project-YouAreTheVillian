@@ -4,12 +4,88 @@ ModelImporter:
   serializedVersion: 15
   fileIDToRecycleName:
     100000: //RootNode
+    100002: Armature
+    100004: Back
+    100006: Bone_001_L
+    100008: Bone_001_L_001
+    100010: Bone_001_L_002
+    100012: Bone_001_L_003
+    100014: Bone_001_R
+    100016: Bone_001_R_001
+    100018: Bone_001_R_002
+    100020: Bone_001_R_003
+    100022: Bone_002
+    100024: Cube
+    100026: Foot_L_003
+    100028: Foot_R_003
+    100030: Hip_L
+    100032: Hip_R
+    100034: Leg_L_001
+    100036: Leg_L_002
+    100038: Leg_R_001
+    100040: Leg_R_002
+    100042: Root
+    100044: Tail
+    100046: TailTip
+    100048: Arm_L
+    100050: Arm_R
+    100052: ForeArm_L
+    100054: ForeArm_R
+    100056: Hand_L
+    100058: Hand_R
+    100060: Head
+    100062: Player
+    100064: Shoulder_L
+    100066: Shoulder_R
     400000: //RootNode
+    400002: Armature
+    400004: Back
+    400006: Bone_001_L
+    400008: Bone_001_L_001
+    400010: Bone_001_L_002
+    400012: Bone_001_L_003
+    400014: Bone_001_R
+    400016: Bone_001_R_001
+    400018: Bone_001_R_002
+    400020: Bone_001_R_003
+    400022: Bone_002
+    400024: Cube
+    400026: Foot_L_003
+    400028: Foot_R_003
+    400030: Hip_L
+    400032: Hip_R
+    400034: Leg_L_001
+    400036: Leg_L_002
+    400038: Leg_R_001
+    400040: Leg_R_002
+    400042: Root
+    400044: Tail
+    400046: TailTip
+    400048: Arm_L
+    400050: Arm_R
+    400052: ForeArm_L
+    400054: ForeArm_R
+    400056: Hand_L
+    400058: Hand_R
+    400060: Head
+    400062: Player
+    400064: Shoulder_L
+    400066: Shoulder_R
     2300000: //RootNode
+    2300002: Cube
     3300000: //RootNode
+    3300002: Cube
     4300000: Cube
+    4300002: Player
     7400000: Default Take
+    7400002: Idle
+    7400004: MoveBackward
+    7400006: MoveForward
+    7400008: BaseAttack
+    7400010: BaseAttackTransition
     9500000: //RootNode
+    11100000: //RootNode
+    13700000: Player
   materials:
     importMaterials: 0
     materialName: 0
@@ -22,11 +98,143 @@ ModelImporter:
     animationPositionError: .5
     animationScaleError: .5
     animationWrapMode: 0
-    clipAnimations: []
+    clipAnimations:
+    - name: Default Take
+      takeName: Default Take
+      firstFrame: 0
+      lastFrame: 249
+      wrapMode: 0
+      orientationOffsetY: 0
+      level: 0
+      cycleOffset: 0
+      loop: 0
+      loopBlend: 0
+      loopBlendOrientation: 0
+      loopBlendPositionY: 0
+      loopBlendPositionXZ: 0
+      keepOriginalOrientation: 0
+      keepOriginalPositionY: 1
+      keepOriginalPositionXZ: 0
+      heightFromFeet: 0
+      mirror: 0
+      keepAdditionalBonesAnimation: 1
+      bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
+      curves: []
+      skeletonMaskElements: []
+    - name: Idle
+      takeName: Idle
+      firstFrame: -1
+      lastFrame: 0
+      wrapMode: 2
+      orientationOffsetY: 0
+      level: 0
+      cycleOffset: 0
+      loop: 0
+      loopBlend: 1
+      loopBlendOrientation: 0
+      loopBlendPositionY: 0
+      loopBlendPositionXZ: 0
+      keepOriginalOrientation: 0
+      keepOriginalPositionY: 1
+      keepOriginalPositionXZ: 0
+      heightFromFeet: 0
+      mirror: 0
+      keepAdditionalBonesAnimation: 1
+      bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
+      curves: []
+      skeletonMaskElements: []
+    - name: MoveBackward
+      takeName: MoveBackward
+      firstFrame: -1
+      lastFrame: 39
+      wrapMode: 2
+      orientationOffsetY: 0
+      level: 0
+      cycleOffset: 0
+      loop: 0
+      loopBlend: 1
+      loopBlendOrientation: 0
+      loopBlendPositionY: 0
+      loopBlendPositionXZ: 0
+      keepOriginalOrientation: 0
+      keepOriginalPositionY: 1
+      keepOriginalPositionXZ: 0
+      heightFromFeet: 0
+      mirror: 0
+      keepAdditionalBonesAnimation: 1
+      bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
+      curves: []
+      skeletonMaskElements: []
+    - name: MoveForward
+      takeName: MoveForward
+      firstFrame: -1
+      lastFrame: 39
+      wrapMode: 2
+      orientationOffsetY: 0
+      level: 0
+      cycleOffset: 0
+      loop: 0
+      loopBlend: 1
+      loopBlendOrientation: 0
+      loopBlendPositionY: 0
+      loopBlendPositionXZ: 0
+      keepOriginalOrientation: 0
+      keepOriginalPositionY: 1
+      keepOriginalPositionXZ: 0
+      heightFromFeet: 0
+      mirror: 0
+      keepAdditionalBonesAnimation: 1
+      bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
+      curves: []
+      skeletonMaskElements: []
+    - name: BaseAttack
+      takeName: BaseAttack
+      firstFrame: -1
+      lastFrame: 79
+      wrapMode: 1
+      orientationOffsetY: 0
+      level: 0
+      cycleOffset: 0
+      loop: 0
+      loopBlend: 0
+      loopBlendOrientation: 0
+      loopBlendPositionY: 0
+      loopBlendPositionXZ: 0
+      keepOriginalOrientation: 0
+      keepOriginalPositionY: 1
+      keepOriginalPositionXZ: 0
+      heightFromFeet: 0
+      mirror: 0
+      keepAdditionalBonesAnimation: 1
+      bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
+      curves: []
+      skeletonMaskElements: []
+    - name: BaseAttackTransition
+      takeName: BaseAttackTransition
+      firstFrame: -1
+      lastFrame: 19
+      wrapMode: 1
+      orientationOffsetY: 0
+      level: 0
+      cycleOffset: 0
+      loop: 0
+      loopBlend: 0
+      loopBlendOrientation: 0
+      loopBlendPositionY: 0
+      loopBlendPositionXZ: 0
+      keepOriginalOrientation: 0
+      keepOriginalPositionY: 1
+      keepOriginalPositionXZ: 0
+      heightFromFeet: 0
+      mirror: 0
+      keepAdditionalBonesAnimation: 1
+      bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
+      curves: []
+      skeletonMaskElements: []
     isReadable: 1
   meshes:
     lODScreenPercentages: []
-    globalScale: 2
+    globalScale: 4
     meshCompression: 0
     addColliders: 0
     swapUVChannels: 0
@@ -58,5 +266,5 @@ ModelImporter:
     rootMotionBoneName: 
   lastHumanDescriptionAvatarSource: {instanceID: 0}
   additionalBone: 1
-  animationType: 2
+  animationType: 1
   userData: 
