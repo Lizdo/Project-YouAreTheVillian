@@ -272,6 +272,16 @@ private function PositionIsValid(){
 	if (!target || targetPosition == Vector3.zero)
 		return false;
 	var distance:float = Vector3.Distance(Position(), target.Position());
+
+	// TODO: Ability Avoidance
+	// if (player.state == State.UsingAbility && target == player){
+	// 	var offset:Quaternion = Quaternion.LookRotation(player.Position() - Position());
+	// 	if (Mathf.Abs(Quaternion.Dot(player.transform.rotation, offset)) > 0){
+	// 		print("Move Out!");
+	// 		return false;
+	// 	}
+	// }
+
 	if (distance <= attackRadius && distance > attackRadius * targetTooCloseRatio)
 		return true;
 	return false;	
@@ -281,6 +291,14 @@ private function TargetPositionIsValid(){
 	if (!target || targetPosition == Vector3.zero)
 		return false;
 	var distance:float = Vector3.Distance(targetPosition, target.Position());
+
+	// if (player.state == State.UsingAbility && target == player){
+	// 	var offset:Quaternion = Quaternion.LookRotation(player.Position() - targetPosition);
+	// 	if (Mathf.Abs(Quaternion.Dot(player.transform.rotation, offset)) > 0){
+	// 		return false;
+	// 	}
+	// }
+
 	if (distance <= attackRadius && distance > attackRadius * targetTooCloseRatio)
 		return true;
 	return false;

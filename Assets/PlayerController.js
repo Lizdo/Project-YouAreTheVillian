@@ -1,9 +1,5 @@
 #pragma strict
 
-class PlayerController extends BaseController{
-
-private var mainCamera:Camera;
-
 enum State{
 	Idle,
 	MovingForward,
@@ -13,8 +9,12 @@ enum State{
 	UsingAbility
 }
 
-private var currentAbility:Ability;
-private var state:State;
+class PlayerController extends BaseController{
+
+private var mainCamera:Camera;
+
+public var currentAbility:Ability;
+public var state:State;
 
 private var enraged:boolean;
 
@@ -195,7 +195,7 @@ private function ClosestEnemiesInFront():AIController{
 		var distance:float = Vector3.Distance(ai.Position(), Position());
 		if (distance < closestDistance){
 			var offset:Quaternion = Quaternion.LookRotation(Position() - ai.Position());
-			if (Mathf.Abs(Quaternion.Angle(transform.rotation, offset)) < 100){
+			if (Mathf.Abs(Quaternion.Angle(transform.rotation, offset)) < 90){
 				closestDistance = distance;
 				closestAI = ai;
 			}
@@ -235,7 +235,7 @@ private function UseAbility(i:int){
 	print("Using Ability: " + currentAbility);
 
 	SetState(State.UsingAbility);
-	
+
 	if (target)
 		abilityTargetLocation = target.Position();
 	ProcessAbility();

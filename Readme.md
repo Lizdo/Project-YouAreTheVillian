@@ -26,4 +26,8 @@ This is my first test entry for LD25… However it seems not possible to finish 
 
 - Move/Base Attack Animation
 - Flexable Animation Length based on Tweakables
-- Coming Tomorrow: Turn Animation, Cleave Ability
+
+#### Update (12/18)
+
+- Turn Animation
+- Cleave Ability
