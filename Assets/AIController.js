@@ -6,7 +6,7 @@ enum AIClass{
 	Healer
 }
 
-class AIController extends BaseController{
+class AIController extends BaseController implements System.IComparable{
 
 public var aiClass:AIClass;
 
@@ -93,6 +93,16 @@ public function Setup(){
 // Public Functions
 ///////////////////////////
 
+
+public function CompareTo(other:Object) : int
+ {
+ 	if (!(other instanceof AIController)) return;
+ 	var otherAI:AIController = other;
+
+ 	var myDistance:float = Vector3.Distance(Position(), player.Position());
+ 	var otherDistance:float = Vector3.Distance(otherAI.Position(), player.Position()); 	
+     return myDistance.CompareTo(otherDistance);
+ }
 
 ///////////////////////////
 // AI

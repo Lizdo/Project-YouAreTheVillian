@@ -169,6 +169,8 @@ private var AbilityCooldownTime:float[] = [0f,10f,20f,10f];
 private var AbilityLastUsed:float[] = [-100f,-100f,-100f,-100f];
 private var AbilityDamage:float[] = [100f, 100f, 100f, 100f];
 private var AbilityRange:float[] = [30f, 20f, 20f, 20f];
+private var AbilityAngle:float[] = [180f, 120f, 0f, 0f];
+private var AbilityTargetNumber:int[] = [1, 100, 0, 0];
 
 private var target:AIController;
 private var targetArrow:GUIText;
@@ -208,13 +210,13 @@ private function AbilityVisible(i:int):boolean{
 
 private function AbilityAvailable(i:int):boolean{
 	// TODO: Implement the other three abilities.
-	if (i > 0)
+	if (i > 1)
 		return false;
 
 	if (!AbilityVisible(i))
 		return false;
 
-	// Another Ability In Progress444
+	// Another Ability In Progress
 	if (state == State.UsingAbility)
 		return false;
 
@@ -228,9 +230,12 @@ private function AbilityAvailable(i:int):boolean{
 private function UseAbility(i:int){
 	if (!AbilityAvailable(i))
 		return;
-	SetState(State.UsingAbility);
+
 	currentAbility = i;
 	print("Using Ability: " + currentAbility);
+
+	SetState(State.UsingAbility);
+	
 	if (target)
 		abilityTargetLocation = target.Position();
 	ProcessAbility();
@@ -249,14 +254,53 @@ private function ProcessAbility(){
 }
 
 private function ResolveAbility(){
+	for (var ai:AIController in EnemyInAbilityRange()){
+		DealDamageToTarget(ai);
+	}
+
 	switch (currentAbility){
 		case Ability.BaseAttack:
-			if (!target)
-				return;
-			if (Vector3.Distance(target.transform.position, transform.position) < AbilityRange[currentAbility]){
-				DealDamageToTarget(target);
-			}
+			break;
+		case Ability.Cleave:
+			break;
 	}
+}
+
+private function EnemyInAbilityRange():Array{
+	if (AbilityTargetNumber == 0)
+		return null;
+
+	var enemyInRange:Array = new Array();
+	var targetInRange:boolean;
+
+	for (var ai:AIController in AIs){
+		if (Vector3.Distance(ai.Position(), Position()) > AbilityRange[currentAbility])
+			continue;
+
+		var offset:Quaternion = Quaternion.LookRotation(Position() - ai.Position());
+		if (Mathf.Abs(Quaternion.Angle(transform.rotation, offset)) < AbilityAngle[currentAbility]/2){
+			if (ai == target)
+				targetInRange = true;
+			else
+				enemyInRange.Add(ai);
+		}
+	}
+
+	enemyInRange.sort();
+
+	if (targetInRange){
+		enemyInRange.Unshift(target);
+	}
+
+	var targetNumber:int = Mathf.Min(AbilityTargetNumber[currentAbility], enemyInRange.length);
+	var returnArray:Array = new Array();
+
+	for (var i:int = 0; i <targetNumber; i++){
+		returnArray.Add(enemyInRange[i]);
+	}
+
+	return returnArray;
+
 }
 
 private function DealDamageToTarget(ai:AIController){
@@ -307,8 +351,7 @@ private function PlayAnimation(animName:String){
 
 
 private function PlayAbilityAnimation(attackAnim:boolean){
-	//var animName = currentAbility.ToString();
-	var animName = "BaseAttack";
+	var animName = currentAbility.ToString();
 
 	if (!attackAnim){
 		animName += "Transition";
