@@ -8,6 +8,8 @@ enum State{
 	Idle,
 	MovingForward,
 	MovingBackward,
+	MovingLeft,
+	MovingRight,
 	UsingAbility
 }
 
@@ -288,6 +290,12 @@ private function SetState(newState:State){
 		case State.MovingBackward:
 			PlayAnimation("MoveBackward");
 			break;
+		case State.MovingLeft:
+			PlayAnimation("TurnLeft");
+			break;
+		case State.MovingRight:
+			PlayAnimation("TurnRight");
+			break;							
 		case State.UsingAbility:
 			PlayAbilityAnimation(true);
 	}
@@ -439,6 +447,10 @@ private function UpdateMovement () {
 	}else if (inputVerticalValue < 0){
 		transform.position -= Quaternion.Euler(0,rotationY,0) * Vector3.forward * Time.deltaTime * inputVerticalValue * reverseSpeed;
 		SetState(State.MovingBackward);
+	}else if (inputHorizontalValue < 0){
+		SetState(State.MovingLeft);
+	}else if (inputHorizontalValue > 0){
+		SetState(State.MovingRight);
 	}else{
 		SetState(State.Idle);
 	}
