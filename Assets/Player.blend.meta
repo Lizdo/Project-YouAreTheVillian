@@ -261,7 +261,7 @@ ModelImporter:
     - name: Cleave
       takeName: Cleave
       firstFrame: -1
-      lastFrame: 60
+      lastFrame: 99
       wrapMode: 1
       orientationOffsetY: 0
       level: 0
