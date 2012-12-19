@@ -194,6 +194,8 @@ private function ClosestEnemiesInFront():AIController{
 	for (var ai:AIController in AIs){
 		var distance:float = Vector3.Distance(ai.Position(), Position());
 		if (distance < closestDistance){
+			if (Position() == ai.Position())
+				return ai;
 			var offset:Quaternion = Quaternion.LookRotation(Position() - ai.Position());
 			if (Mathf.Abs(Quaternion.Angle(transform.rotation, offset)) < 90){
 				closestDistance = distance;

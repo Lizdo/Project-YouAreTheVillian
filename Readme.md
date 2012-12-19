@@ -13,7 +13,7 @@ This is my first test entry for LD25… However it seems not possible to finish 
 
 ###Missing Features:
 
-- Animations!
+- Animations
 - Player Ability Implementation
 - Enemy avoidance AI
 - Enemy Abilities
@@ -31,3 +31,8 @@ This is my first test entry for LD25… However it seems not possible to finish 
 
 - Turn Animation
 - Cleave Ability
+
+#### Update (12/19)
+
+- Improve Cleave Animation
+- Basic AI Avoidance

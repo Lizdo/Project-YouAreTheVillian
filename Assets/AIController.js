@@ -20,6 +20,7 @@ private var isDead:boolean = false;
 public var updateID:int;
 private static var currentID:int;
 public static var totalID:int;
+private var frameSlice:int = 3;
 
 private var player:PlayerController;
 
@@ -36,8 +37,12 @@ function Start () {
 }
 
 function Update () {
-	if (currentID == updateID){
-		//Once per second
+	// if (currentID == updateID){
+	// 	//Once per second
+	// 	SlowUpdate();
+	// }
+
+	if (Time.frameCount % frameSlice == updateID % frameSlice){
 		SlowUpdate();
 	}
 
@@ -53,6 +58,7 @@ function SlowUpdate(){
 	if (isDead)
 		return;
 
+	// See what to add here.
 	UpdateMovementTargetSlow();
 }
 
@@ -118,6 +124,22 @@ private function UpdateAI(){
 
 	if (isDead)
 		return;
+
+	var needAvoidance:boolean;
+
+	if (target == player && player.state == State.UsingAbility && player.currentAbility > 0){
+		needAvoidance = true;
+	}else{
+		needAvoidance = false;
+		avoidPlayer = false;
+	}
+
+	if (!avoidPlayer && needAvoidance){
+		if (Random.value < 0.05){
+			// Add a delay to the avoidance, now it should happen around after 0.1 second
+			avoidPlayer = true;
+		}
+	}
 
 	// Base Attack
 	if (!attackInProgress && PositionIsValid()){
@@ -191,6 +213,8 @@ private function RandomAI():AIController{
 
 // TODO: Use Area Graph Instead
 
+private var avoidPlayer:boolean;
+
 private var AdjucentOffsets:Array = new Array(
 	Vector3(0,0,1),
 	Vector3(1,0,1),
@@ -203,7 +227,15 @@ private var AdjucentOffsets:Array = new Array(
 );
 
 private function UpdateMovementTargetSlow(){
-	if (!target || (TargetInRange() && !TargetTooClose()))
+	if (!target)
+		return;
+
+	if (avoidPlayer){
+		UpdateMovementTargetAvoidPlayer();
+		return;
+	}
+
+	if (TargetInRange() && !TargetTooClose())
 		return;
 
 	// Try to find an un-occupied target position here
@@ -245,6 +277,36 @@ private function UpdateMovementTargetSlow(){
 	targetPosition = Vector3.zero;
 }
 
+
+private function UpdateMovementTargetAvoidPlayer(){
+	// Move To the other side
+	var positionOnRadius:Vector3 = FarthestPositionOnRadius();
+	targetPosition = positionOnRadius;
+
+	if (!TargetPositionOccupied())
+		return;
+
+	// Check Adjucent 8 Slots...
+	for (var i:int = 0; i < 8; i++){
+		for (var j:int = 1; j < 6; j++){
+			var offset:Vector3 = AdjucentOffsets[i];
+			targetPosition = positionOnRadius + offset * j * 0.8;
+			if (TargetPositionIsValid() && !TargetPositionOccupied())
+				return;
+		}
+	}	
+
+	// Move Out
+	targetPosition = FarAwayFromPlayer();
+}
+
+private function FarAwayFromPlayer():Vector3{
+	var distance:float = Vector3.Distance(player.Position(), Position());
+	var ratio:float = -100;
+	return SnapToGround(Vector3.MoveTowards(Position(), player.Position(), ratio));
+}
+
+
 private function FarthestPositionOnRadius():Vector3{
 	var distance:float = Vector3.Distance(target.Position(), Position());
 	var ratio:float = 1 + targetInRangeBuffer * attackRadius / distance;
@@ -273,14 +335,14 @@ private function PositionIsValid(){
 		return false;
 	var distance:float = Vector3.Distance(Position(), target.Position());
 
-	// TODO: Ability Avoidance
-	// if (player.state == State.UsingAbility && target == player){
-	// 	var offset:Quaternion = Quaternion.LookRotation(player.Position() - Position());
-	// 	if (Mathf.Abs(Quaternion.Dot(player.transform.rotation, offset)) > 0){
-	// 		print("Move Out!");
-	// 		return false;
-	// 	}
-	// }
+	if (player.state == State.UsingAbility && target == player){
+		if (player.Position() == Position())
+			return false;
+		var offset:Quaternion = Quaternion.LookRotation(player.Position() - Position());
+		if (Mathf.Abs(Quaternion.Dot(player.transform.rotation, offset)) < 0){
+			return false;
+		}
+	}
 
 	if (distance <= attackRadius && distance > attackRadius * targetTooCloseRatio)
 		return true;
@@ -292,12 +354,12 @@ private function TargetPositionIsValid(){
 		return false;
 	var distance:float = Vector3.Distance(targetPosition, target.Position());
 
-	// if (player.state == State.UsingAbility && target == player){
-	// 	var offset:Quaternion = Quaternion.LookRotation(player.Position() - targetPosition);
-	// 	if (Mathf.Abs(Quaternion.Dot(player.transform.rotation, offset)) > 0){
-	// 		return false;
-	// 	}
-	// }
+	if (player.state == State.UsingAbility && target == player){
+		var offset:Quaternion = Quaternion.LookRotation(player.Position() - targetPosition);
+		if (Mathf.Abs(Quaternion.Dot(player.transform.rotation, offset)) < 0){
+			return false;
+		}
+	}
 
 	if (distance <= attackRadius && distance > attackRadius * targetTooCloseRatio)
 		return true;
@@ -327,8 +389,13 @@ private function UpdateMovement(){
 }
 
 private function RotateTowardTarget(){
-	if (target)
-		transform.rotation = Quaternion.LookRotation(target.Position() - Position());
+	if (!target)
+		return;
+
+	if (target.Position() == Position())
+		return;
+	
+	transform.rotation = Quaternion.LookRotation(target.Position() - Position());
 }
 
 private function MoveTowardTarget(){
