@@ -15,7 +15,7 @@ private var dps:float;
 private var speed:float;
 public var color:Color;
 private var attackRadius:float;
-private var isDead:boolean = false;
+public var isDead:boolean;
 
 public var updateID:int;
 private static var currentID:int;
@@ -172,7 +172,7 @@ private function UpdateAI(){
 	}
 
 	// Base Attack
-	if (!attackInProgress && PositionIsValid()){
+	if (!avoidingPlayer && !attackInProgress && PositionIsValid()){
 		Attack();
 	}
 

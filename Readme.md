@@ -36,3 +36,8 @@ This is my first test entry for LD25… However it seems not possible to finish 
 
 - Improve Cleave Animation
 - Basic AI Avoidance
+
+#### Update (12/22)
+
+- Stomp Ability
+- Game Init/Fail Sequence

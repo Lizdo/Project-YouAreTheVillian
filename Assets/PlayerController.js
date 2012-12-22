@@ -25,10 +25,10 @@ private var enraged:boolean;
 function Awake(){
 	//Application.targetFrameRate = 30;
 	mainCamera = Camera.main;
-	SpawnAI();
 }
 
 private var hint:GUIText;
+private var centerText:FadeText;
 
 function Start () {
 	AlignCameraToBack();
@@ -43,14 +43,92 @@ function Start () {
 	hint = gameObject.Find("Hint").GetComponent(GUIText);
 	hint.text = "Use WSAD to move, Left Mouse Button to drag camera, 1/2/3/4 for Abilities.";
 	hint.material.color = ColorWithHex(0xe2dfd9);
+
+	centerText = gameObject.Find("CenterText").GetComponent(FadeText);
+	LevelInit();
 }
 
+private var levelInitComplete:boolean;
+
+function LevelInit(){
+	centerText.SetText("G A M E   S T A R T");
+	centerText.FadeIn();
+	yield WaitForSeconds(3);
+	centerText.FadeOut();
+	yield WaitForSeconds(1);
+
+	levelInitComplete = true;
+	guiFadeStartTime = Time.time;
+	guiFading = true;
+	SpawnAI();
+
+	yield WaitForSeconds(1);
+
+	guiFading = false;
+
+
+	yield WaitForSeconds(3);
+	centerText.SetText("Kill All Enemys.");
+	centerText.FadeIn();
+	yield WaitForSeconds(3);
+	centerText.FadeOut();
+}
+
+function LevelComplete(){
+	centerText.SetText("V I C T O R Y");
+	centerText.FadeIn();
+	yield WaitForSeconds(3);
+	centerText.FadeOut();
+	yield WaitForSeconds(3);
+	Application.LoadLevel(0);
+}
+
+function LevelFailed(){
+	centerText.SetText("G A M E   O V E R");
+	//TODO: Play Fail Anim...
+	centerText.FadeIn();
+	yield WaitForSeconds(3);
+	centerText.FadeOut();
+	yield WaitForSeconds(3);
+	Application.LoadLevel(0);
+}
+
+
 function Update () {
+	if (levelFail)
+		return;
+
 	UpdateInput();
 	UpdateTarget();
 	if (state != State.UsingAbility)
 		UpdateMovement();
 	UpdateCamera();
+
+	if (levelInitComplete){
+		CheckVictoryCondition();
+	}
+}
+
+private var levelComplete:boolean;
+private var levelFail:boolean;
+
+private function CheckVictoryCondition(){
+	if (levelComplete || levelFail)
+		return;
+
+	if (health <= 0){
+		levelFail = true;
+		LevelFailed();
+	}
+
+	for (var ai:AIController in AIs){
+		if (!ai.isDead)
+			return;
+	}
+
+	// All of them are dead.
+	levelComplete = true;
+	LevelComplete();
 }
 
 
@@ -100,6 +178,8 @@ private var abilityButtonSize:float = 80;
 private var abilityButtonPadding:float = 10;
 
 function OnGUI () {
+	if (!levelInitComplete)
+		return;
 
 	GUI.skin = skin;
 
@@ -114,10 +194,10 @@ function OnGUI () {
 
 	// Player HP
 
-	GUI.color = ColorWithHex(0x9cbcbd);
+	SetGuiColor(BackgroundColor());
 	GUILayout.BeginArea(Rect(healthBarMargin, healthBarMargin, healthBarWidth, healthBarHeight),  GUIStyle("BarEmpty"));
 
-		GUI.color = ColorWithHex(0x742f15);
+		SetGuiColor(ColorWithHex(0x742f15));
 	    bar = Rect(healthBarPadding, healthBarPadding,
 	        health/maxHealth * (healthBarWidth - healthBarPadding * 2),
 	        healthBarHeight - healthBarPadding * 2);
@@ -131,22 +211,29 @@ function OnGUI () {
 
 	var aiHPBarTotalHeight:float = AIs.length * (aiHPBarHeight+aiHPBarPadding) + aiHPBarPadding;
 
-	GUI.color = ColorWithHex(0x9cbcbd);
+	SetGuiColor(BackgroundColor());
 	GUILayout.BeginArea(Rect(aiHPBarMarginX, aiHPBarMarginY, aiHPBarWidth, aiHPBarTotalHeight),  GUIStyle("BarEmpty"));
+
+	var lineNumber:int = 0;
 
 		for (var i:int = 0; i < AIs.length; i++){
 			var ai:AIController = AIs[i];
-			GUI.color = ai.color;
-		    bar = Rect(aiHPBarPadding, aiHPBarPadding+i*(aiHPBarHeight+aiHPBarPadding),
+			if (ai.isDead){
+				continue;
+			}
+			SetGuiColor(ai.color);
+		    bar = Rect(aiHPBarPadding, aiHPBarPadding+lineNumber*(aiHPBarHeight+aiHPBarPadding),
 		        ai.health/ai.maxHealth * (aiHPBarWidth - aiHPBarPadding * 2),
 		        aiHPBarHeight);
 		    GUILayout.BeginArea(bar, GUIStyle("BarFull"));
 		    GUILayout.EndArea();
+
+		    lineNumber++;
 		}
 
 	GUILayout.EndArea();	
 
-	GUI.color = Color.white;
+	SetGuiColor(Color.white);
 
 	// Skill Buttons
 	for (i = 0; i < 4; i++){
@@ -161,17 +248,41 @@ function OnGUI () {
 		var t:Texture = Resources.Load(ability.ToString(), Texture);
 
 		if (!AbilityAvailable(i)){
-			GUI.color = Color(0.2, 0.2, 0.2, 0.2);
+			SetGuiColor(Color(0.2, 0.2, 0.2, 0.2));
 		}
 
 		if (GUI.Button (r, GUIContent(ability.ToString(), t))) {
 			UseAbility(i);
 		}
 
-		GUI.color = Color.white;
+		SetGuiColor(Color.white);
 	}
 
 
+}
+
+private var guiFadeTime:float = 1.0f;
+private var guiFadeStartTime:float;
+private var guiFading:boolean = true;
+
+private function SetGuiColor(c:Color){
+	if (!guiFading){
+		GUI.color = c;
+		return;
+	}
+
+	var alpha:float = Mathf.Lerp(0,1,(Time.time - guiFadeStartTime)/guiFadeTime);
+	alpha = Mathf.Min(c.a, alpha);
+
+	c.a = alpha;
+
+	GUI.color = c;
+}
+
+private function BackgroundColor():Color{
+	var c:Color = ColorWithHex(0x9cbcbd);
+	c.a = 0.4;
+	return c;
 }
 
 ///////////////////////////
@@ -216,6 +327,8 @@ private function ClosestEnemiesInFront():AIController{
 	var closestAI:AIController;
 
 	for (var ai:AIController in AIs){
+		if (!ai)
+			continue;
 		var distance:float = Vector3.Distance(ai.Position(), Position());
 		if (distance < closestDistance){
 			if (Position() == ai.Position())
