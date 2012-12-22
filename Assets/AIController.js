@@ -100,15 +100,38 @@ public function Setup(){
 ///////////////////////////
 
 
-public function CompareTo(other:Object) : int
- {
+public function CompareTo(other:Object) : int{
  	if (!(other instanceof AIController)) return;
  	var otherAI:AIController = other;
 
  	var myDistance:float = Vector3.Distance(Position(), player.Position());
  	var otherDistance:float = Vector3.Distance(otherAI.Position(), player.Position()); 	
      return myDistance.CompareTo(otherDistance);
- }
+}
+
+
+
+private var beingPushingBack:boolean;
+private var pushBackStartTime:float;
+private var pushBacktime:float;
+private var pushBackDistance:float;
+
+private var pushBackStartPosition:Vector3;
+private var pushBackMovementTarget:Vector3;
+
+public function PushBack(distance:float, time:float){
+	beingPushingBack = true;
+	pushBackStartTime = Time.time;
+	pushBacktime = time;
+	pushBackDistance = distance;
+
+	pushBackStartPosition = transform.position;
+	pushBackMovementTarget = Vector3.MoveTowards(transform.position, player.Position(), -pushBackDistance);
+
+	yield WaitForSeconds(time);
+	beingPushingBack = false;
+}
+
 
 ///////////////////////////
 // AI
@@ -124,6 +147,9 @@ private function UpdateAI(){
 	}
 
 	if (isDead)
+		return;
+
+	if (beingPushingBack)
 		return;
 
 	var needAvoidanceFromPlayer:boolean = NeedAvoidance();
@@ -408,8 +434,18 @@ private var targetPosition:Vector3;
 private var yOffset:float = 0.5;
 
 private function UpdateMovement(){
+	if (beingPushingBack){
+		UpdatePushBack();
+		return;
+	}
+
 	RotateTowardTarget();
 	MoveTowardTarget();
+}
+
+private function UpdatePushBack(){
+	var currentTimeRatio:float = (Time.time - pushBackStartTime)/pushBacktime;
+	transform.position = Vector3.Lerp(pushBackStartPosition, pushBackMovementTarget, currentTimeRatio);
 }
 
 private function RotateTowardTarget(){
