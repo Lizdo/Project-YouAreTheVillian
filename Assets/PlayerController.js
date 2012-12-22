@@ -55,6 +55,25 @@ function Update () {
 
 
 ///////////////////////////
+// Public Functions
+///////////////////////////
+
+public function AffactedByCurrentAbility(ai:AIController):boolean{
+	if (Vector3.Distance(ai.Position(), Position()) > AbilityRange[currentAbility])
+		return false;
+
+	if (Position() == ai.Position())
+		return true;
+
+	var offset:Quaternion = Quaternion.LookRotation(Position() - ai.Position());
+	if (Mathf.Abs(Quaternion.Angle(transform.rotation, offset)) < AbilityAngle[currentAbility]/2){
+		return true;
+	}
+
+	return false;
+}
+
+///////////////////////////
 // GUI
 ///////////////////////////
 
@@ -276,11 +295,7 @@ private function EnemyInAbilityRange():Array{
 	var targetInRange:boolean;
 
 	for (var ai:AIController in AIs){
-		if (Vector3.Distance(ai.Position(), Position()) > AbilityRange[currentAbility])
-			continue;
-
-		var offset:Quaternion = Quaternion.LookRotation(Position() - ai.Position());
-		if (Mathf.Abs(Quaternion.Angle(transform.rotation, offset)) < AbilityAngle[currentAbility]/2){
+		if (AffactedByCurrentAbility(ai)){
 			if (ai == target)
 				targetInRange = true;
 			else
@@ -290,10 +305,13 @@ private function EnemyInAbilityRange():Array{
 
 	enemyInRange.sort();
 
+
+	// Add the target if he's in range
 	if (targetInRange){
 		enemyInRange.Unshift(target);
 	}
 
+	// Only pick x targets
 	var targetNumber:int = Mathf.Min(AbilityTargetNumber[currentAbility], enemyInRange.length);
 	var returnArray:Array = new Array();
 
@@ -469,7 +487,7 @@ private function UpdateInput () {
 private var speed:float = 30;
 private var reverseSpeed:float = 5;	// Move backward is slower
 
-private var rotateSpeed:float = 20;
+private var rotateSpeed:float = 40;
 
 private function UpdateMovement () {
 	if (mouseDown)

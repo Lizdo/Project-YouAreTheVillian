@@ -72,23 +72,23 @@ public function Setup(){
 		case AIClass.Tank:
 			maxHealth = 1000;
 			dps = 15;
-			speed = 20;
+			speed = 10;
 			color = ColorWithHex(0xa33625);
 			attackRadius = 10;
 			break;
 		case AIClass.DPS:
 			maxHealth = 500;
 			dps = 30;
-			speed = 25;
+			speed = 12;
 			color = ColorWithHex(0x6587a3);
 			attackRadius = 20;
 			break;
 		case AIClass.Healer:
 			maxHealth = 800;
 			dps = 10;
-			speed = 10;
+			speed = 5;
 			color = ColorWithHex(0x56a362);
-			attackRadius = 15;
+			attackRadius = 8;
 			break;
 	}
 	Renderer().material.color = color;
@@ -115,6 +115,7 @@ public function CompareTo(other:Object) : int
 ///////////////////////////
 
 private var target:BaseController;
+private var avoidingCooldown:boolean;
 
 private function UpdateAI(){
 	if (health <= 0){
@@ -125,20 +126,17 @@ private function UpdateAI(){
 	if (isDead)
 		return;
 
-	var needAvoidance:boolean;
+	var needAvoidanceFromPlayer:boolean = NeedAvoidance();
 
-	if (target == player && player.state == State.UsingAbility && player.currentAbility > 0){
-		needAvoidance = true;
-	}else{
-		needAvoidance = false;
-		avoidPlayer = false;
+	if (!needAvoidanceFromPlayer && avoidingPlayer && !avoidingCooldown){
+		StopAvoidingPlayer();
 	}
 
-	if (!avoidPlayer && needAvoidance){
+	if (needAvoidanceFromPlayer && !avoidingPlayer){
 		if (Random.value < 0.05){
 			// Add a delay to the avoidance, now it should happen around after 0.1 second
-			avoidPlayer = true;
-		}
+			avoidingPlayer = true;
+		}	
 	}
 
 	// Base Attack
@@ -157,6 +155,32 @@ private function UpdateAI(){
 			UpdateHealerAI();
 			break;
 	}
+}
+
+private var avoidanceCooldown:float = 2; // Continue to avoid after the delay
+
+private function StopAvoidingPlayer(){
+	avoidingCooldown = true;
+	yield WaitForSeconds(avoidanceCooldown);
+	avoidingPlayer = false;
+	avoidingCooldown = false;
+}
+
+private function NeedAvoidance():boolean{
+	// Preliminary Checks
+	if (target != player)
+		return false;
+	if (player.state != State.UsingAbility)
+		return false;
+	if (player.currentAbility <= 0)
+		return false;
+
+	// Check Distance
+	if (player.AffactedByCurrentAbility(this)){
+		return true;
+	}
+
+	return false;
 }
 
 private var attackInProgress:boolean = false;
@@ -213,7 +237,7 @@ private function RandomAI():AIController{
 
 // TODO: Use Area Graph Instead
 
-private var avoidPlayer:boolean;
+private var avoidingPlayer:boolean;
 
 private var AdjucentOffsets:Array = new Array(
 	Vector3(0,0,1),
@@ -230,7 +254,7 @@ private function UpdateMovementTargetSlow(){
 	if (!target)
 		return;
 
-	if (avoidPlayer){
+	if (avoidingPlayer){
 		UpdateMovementTargetAvoidPlayer();
 		return;
 	}
@@ -339,7 +363,7 @@ private function PositionIsValid(){
 		if (player.Position() == Position())
 			return false;
 		var offset:Quaternion = Quaternion.LookRotation(player.Position() - Position());
-		if (Mathf.Abs(Quaternion.Dot(player.transform.rotation, offset)) < 0){
+		if (Quaternion.Dot(player.transform.rotation, offset) < 0){
 			return false;
 		}
 	}
@@ -356,7 +380,7 @@ private function TargetPositionIsValid(){
 
 	if (player.state == State.UsingAbility && target == player){
 		var offset:Quaternion = Quaternion.LookRotation(player.Position() - targetPosition);
-		if (Mathf.Abs(Quaternion.Dot(player.transform.rotation, offset)) < 0){
+		if (Quaternion.Dot(player.transform.rotation, offset) < 0){
 			return false;
 		}
 	}
