@@ -23,7 +23,7 @@ private var enraged:boolean;
 ///////////////////////////
 
 function Awake(){
-	Application.targetFrameRate = 60;
+	//Application.targetFrameRate = 30;
 	mainCamera = Camera.main;
 	SpawnAI();
 }
@@ -64,6 +64,11 @@ public function AffactedByCurrentAbility(ai:AIController):boolean{
 
 	if (Position() == ai.Position())
 		return true;
+
+	// No Angle Limit
+	if (AbilityAngle[currentAbility] == 0){
+		return true;
+	}
 
 	var offset:Quaternion = Quaternion.LookRotation(Position() - ai.Position());
 	if (Mathf.Abs(Quaternion.Angle(transform.rotation, offset)) < AbilityAngle[currentAbility]/2){
@@ -183,13 +188,13 @@ enum Ability{
 private var abilityTargetLocation:Vector3;
 
 private var AbilityCastTime:float[] = [1.5,3,5,3];
-private var abilityTransitionTime:float = 0.5;
-private var AbilityCooldownTime:float[] = [0f,10f,20f,10f];
+private var abilityTransitionTime:float[] = [0.5, 1, 1, 2];
+private var AbilityCooldownTime:float[] = [0f,10f,15f,10f];
 private var AbilityLastUsed:float[] = [-100f,-100f,-100f,-100f];
 private var AbilityDamage:float[] = [100f, 100f, 100f, 100f];
 private var AbilityRange:float[] = [30f, 20f, 20f, 20f];
 private var AbilityAngle:float[] = [180f, 120f, 0f, 0f];
-private var AbilityTargetNumber:int[] = [1, 100, 0, 0];
+private var AbilityTargetNumber:int[] = [1, 100, 100, 0];
 
 private var target:AIController;
 private var targetArrow:GUIText;
@@ -231,7 +236,7 @@ private function AbilityVisible(i:int):boolean{
 
 private function AbilityAvailable(i:int):boolean{
 	// TODO: Implement the other three abilities.
-	if (i > 1)
+	if (i > 2)
 		return false;
 
 	if (!AbilityVisible(i))
@@ -268,7 +273,7 @@ private function ProcessAbility(){
 	print(Time.time + "Ability Casted: " + currentAbility);
 	ResolveAbility();
 	PlayAbilityAnimation(false);
-	yield WaitForSeconds(abilityTransitionTime);
+	yield WaitForSeconds(abilityTransitionTime[currentAbility]);
 	print(Time.time + "Ability Resolved: " + currentAbility);
 	AbilityLastUsed[currentAbility] = Time.time;
 	SetState(State.Idle);
@@ -277,14 +282,19 @@ private function ProcessAbility(){
 private function ResolveAbility(){
 	for (var ai:AIController in EnemyInAbilityRange()){
 		DealDamageToTarget(ai);
+
+		switch (currentAbility){
+			case Ability.BaseAttack:
+				break;
+			case Ability.Cleave:
+				break;
+			case Ability.Stomp:
+				ai.PushBack(10,0.4);
+				break;
+		}		
 	}
 
-	switch (currentAbility){
-		case Ability.BaseAttack:
-			break;
-		case Ability.Cleave:
-			break;
-	}
+
 }
 
 private function EnemyInAbilityRange():Array{
@@ -383,11 +393,14 @@ private function PlayAbilityAnimation(attackAnim:boolean){
 	if (attackAnim){
 		animationState.speed = length/(AbilityCastTime[currentAbility]);
 	}else{
-		animationState.speed = length/abilityTransitionTime;
+		animationState.speed = length/abilityTransitionTime[currentAbility];
 	}
 
-
-	animation.CrossFade(animName);
+	if (attackAnim){
+		animation.CrossFade(animName);
+	}else{
+		animation.Play(animName);
+	}
 }
 
 ///////////////////////////
@@ -431,7 +444,7 @@ function SpawnAI(){
 
 }
 
-private var aiSpawnDistance:float = 100.0;
+private var aiSpawnDistance:float = 30.0;
 
 function RandomAIPosition():Vector3{
 	return Quaternion.Euler(0, Random.value * 360, 0) * Vector3(1,0,0) * aiSpawnDistance;

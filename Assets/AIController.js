@@ -72,21 +72,21 @@ public function Setup(){
 		case AIClass.Tank:
 			maxHealth = 1000;
 			dps = 15;
-			speed = 10;
+			speed = 5;
 			color = ColorWithHex(0xa33625);
 			attackRadius = 10;
 			break;
 		case AIClass.DPS:
 			maxHealth = 500;
 			dps = 30;
-			speed = 12;
+			speed = 6;
 			color = ColorWithHex(0x6587a3);
 			attackRadius = 20;
 			break;
 		case AIClass.Healer:
 			maxHealth = 800;
 			dps = 10;
-			speed = 5;
+			speed = 2.5;
 			color = ColorWithHex(0x56a362);
 			attackRadius = 8;
 			break;
@@ -154,8 +154,14 @@ private function UpdateAI(){
 
 	var needAvoidanceFromPlayer:boolean = NeedAvoidance();
 
+	if (player.state != State.UsingAbility){
+		StopCoroutine("StopAvoidingPlayer");
+		avoidingPlayer = false;
+		avoidingCooldown = false;
+	}
+
 	if (!needAvoidanceFromPlayer && avoidingPlayer && !avoidingCooldown){
-		StopAvoidingPlayer();
+		StartCoroutine("StopAvoidingPlayer");
 	}
 
 	if (needAvoidanceFromPlayer && !avoidingPlayer){
@@ -472,7 +478,12 @@ private function MoveTowardTarget(){
 	// 	transform.position = Vector3.MoveTowards(transform.position, targetPosition, -speed * Time.deltaTime);		
 	// }
 
-	transform.position = Vector3.MoveTowards(transform.position, targetPosition, speed * Time.deltaTime);
+	var speedRatio:float = 1;
+	if (avoidingPlayer){
+		speedRatio *= 0.5;
+	}
+
+	transform.position = Vector3.MoveTowards(transform.position, targetPosition, speed * Time.deltaTime * speedRatio);
 
 
 	if (transform.position.y < -10 || transform.position.y > 10){
