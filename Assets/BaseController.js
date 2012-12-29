@@ -42,8 +42,10 @@ public function Position():Vector3{
 public function Renderer():Renderer{
 	if (!_renderer){
 		_renderer = renderer;
-		if (!_renderer)
+		if (!_renderer && transform.Find("Mesh"))
 			_renderer = transform.Find("Mesh").renderer;
+        if (!_renderer && transform.Find("Player"))
+            _renderer = transform.Find("Player").renderer;
 	}
 	return _renderer;
 }
@@ -111,6 +113,8 @@ public static var TankColor:Color = ColorWithHex(0xa33625);
 public static var DPSColor:Color = ColorWithHex(0x6587a3);
 public static var HealerColor:Color = ColorWithHex(0x56a362);
 
+public static var EnragedColor:Color = ColorWithHex(0xa33625);
+
 public static var HPBarSegmentColor:Color = ColorWithHex(0x27292f);
 
 public static var TargetArrorColor:Color = PlayerDamageTextColor;
@@ -120,6 +124,9 @@ public static var SecondaryTextColor:Color = ColorWithHex(0xbac0bf);
 public static var KeyLabelTextColor:Color = ColorWithHex(0x7a7e7e);
 
 public static var DefaultGUIColor:Color = ColorWithHex(0x742f15);
+
+
+
 
 
 }

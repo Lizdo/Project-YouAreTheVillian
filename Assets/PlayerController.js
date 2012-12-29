@@ -102,10 +102,17 @@ function LevelFailed(){
 	Application.LoadLevel(0);
 }
 
+private var EnrageHealthRatio:float = 0.98;//0.25;
+
 
 function Update () {
 	if (levelFail)
 		return;
+
+	if (HealthRatio() < EnrageHealthRatio && !enraged){
+		enraged = true;
+		Enrage();
+	}
 
 	UpdateInput();
 	UpdateTarget();
@@ -116,6 +123,18 @@ function Update () {
 	if (levelInitComplete){
 		CheckVictoryCondition();
 	}
+}
+
+private var EnrageFX:ParticleSystem;
+private var EnrageFXOffset:Vector3 = Vector3(0,10,10);
+
+private function Enrage(){
+	Renderer().material.color = EnragedColor;
+
+	EnrageFX = Instantiate(Resources.Load("Fire", ParticleSystem));
+	EnrageFX.transform.position = transform.position + transform.rotation * EnrageFXOffset;
+	EnrageFX.transform.parent = transform;
+
 }
 
 private var levelComplete:boolean;
@@ -553,6 +572,12 @@ private function EnemyInAbilityRange():Array{
 }
 
 private function DealDamageToTarget(ai:AIController){
+	var damageMultiplier:float = 1.0;
+
+	if (enraged){
+		damageMultiplier *= 2;
+	}
+
 	var amount:float = AbilityDamage[currentAbility];
 	print("Damaging" + ai.ToString());
 	ai.TakeDamage(amount);
