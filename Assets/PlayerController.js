@@ -102,7 +102,7 @@ function LevelFailed(){
 	Application.LoadLevel(0);
 }
 
-private var EnrageHealthRatio:float = 0.98;//0.25;
+private var EnrageHealthRatio:float = 0.25;
 
 
 function Update () {
@@ -412,11 +412,11 @@ enum Ability{
 
 private var abilityTargetLocation:Vector3;
 
-private var AbilityCastTime:float[] = [1.5,3,5,3];
-private var abilityTransitionTime:float[] = [0.5, 1, 1, 2];
+private var AbilityCastTime:float[] = [1,1.5,1.5,3];
+private var abilityTransitionTime:float[] = [0.5, 0.5, 0.5, 2];
 private var AbilityCooldownTime:float[] = [0f,10f,15f,10f];
 private var AbilityLastUsed:float[] = [-100f,-100f,-100f,-100f];
-private var AbilityDamage:float[] = [100f, 100f, 100f, 100f];
+private var AbilityDamage:float[] = [50f, 70f, 150f, 100f];
 private var AbilityRange:float[] = [30f, 20f, 20f, 20f];
 private var AbilityAngle:float[] = [180f, 120f, 0f, 0f];
 private var AbilityTargetNumber:int[] = [1, 100, 100, 0];
