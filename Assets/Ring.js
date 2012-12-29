@@ -48,7 +48,7 @@ function FadeOut(){
 
 function Update(){
 	if (fadingOut){
-		alpha = Mathf.Lerp(0.5, 0, Time.time - startFadeOutTime);
+		alpha = Mathf.Lerp(0.5, 0, (Time.time - startFadeOutTime)/fadeOutTime);
 		SetColor(color);
 		if (alpha <= 0.01){
 			Destroy(gameObject);

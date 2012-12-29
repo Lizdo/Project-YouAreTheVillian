@@ -266,7 +266,7 @@ private function SpawnAOERing(){
 	// Slight offset to the player position
 	AOETargetPosition = player.Position() + Vector3(AOERingOffset * Random.value, 0.1, AOERingOffset * Random.value);
 
-	AOERing.SetColor(color);
+	AOERing.SetColor(AIDamageTextColor);
 	AOERing.SetPositionAndRadius(AOETargetPosition, AOERadius);
 }
 

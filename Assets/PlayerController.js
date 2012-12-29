@@ -30,6 +30,9 @@ function Awake(){
 private var hint:GUIText;
 private var centerText:FadeText;
 
+private var barEmpty:Texture;
+private var barFull:Texture;
+
 function Start () {
 	AlignCameraToBack();
 	maxHealth = 100000;
@@ -46,12 +49,18 @@ function Start () {
 
 	centerText = gameObject.Find("CenterText").GetComponent(FadeText);
 	LevelInit();
+
+	barEmpty = Resources.Load("LightBackground", Texture);
+	barFull = Resources.Load("DarkBackground", Texture);
+
+	barEmpty.wrapMode = TextureWrapMode.Repeat;
+	barFull.wrapMode = TextureWrapMode.Repeat;
 }
 
 private var levelInitComplete:boolean;
 
 function LevelInit(){
-	centerText.SetText("G A M E   S T A R T");
+	centerText.SetText("G A M E    S T A R T");
 	centerText.FadeIn();
 	yield WaitForSeconds(3);
 	centerText.FadeOut();
@@ -84,7 +93,7 @@ function LevelComplete(){
 }
 
 function LevelFailed(){
-	centerText.SetText("G A M E   O V E R");
+	centerText.SetText("G A M E    O V E R");
 	//TODO: Play Fail Anim...
 	centerText.FadeIn();
 	yield WaitForSeconds(3);
@@ -167,6 +176,13 @@ private var healthBarMargin:float = 20;
 private var healthBarPadding:float = 5;
 private var healthBarWidth:float;
 
+private var healthBarMajorSegments:int = 4;
+private var healthBarMinorSegments:int = 5;
+private var healthBarMajorSegmentWidth:float = 4;
+private var healthBarMajorSegmentHeight:float = healthBarHeight - healthBarPadding;
+private var healthBarMinorSegmentWidth:float = 2;
+private var healthBarMinorSegmentHeight:float = healthBarHeight - healthBarPadding*2;
+
 private var aiHPBarHeight:float = 5;
 private var aiHPBarMarginX:float = 20;
 private var aiHPBarMarginY:float = 100;
@@ -187,25 +203,55 @@ function OnGUI () {
 	// 	print ("You clicked the button!");
 	// }
 
-	//GUI.Box(Rect(healthBarMargin,0,Screen.width,Screen.height),"This is a title");
+	//GUI.DrawTexture(Rect(healthBarMargin,0,Screen.width,Screen.height),"This is a title");
 
-	healthBarWidth = Screen.width - healthBarMargin * 2;
 	var bar:Rect;
+	var i:int;
+	var j:int;
 
 	// Player HP
 
+	healthBarWidth = Screen.width - healthBarMargin * 2;
 	SetGuiColor(BackgroundColor());
-	GUILayout.BeginArea(Rect(healthBarMargin, healthBarMargin, healthBarWidth, healthBarHeight),  GUIStyle("BarEmpty"));
+
+	GUI.BeginGroup(Rect(healthBarMargin, healthBarMargin, healthBarWidth, healthBarHeight));
+
+		GUI.DrawTexture(Rect(0,0,healthBarWidth, healthBarHeight), barEmpty);
 
 		SetGuiColor(DefaultGUIColor);
 	    bar = Rect(healthBarPadding, healthBarPadding,
 	        health/maxHealth * (healthBarWidth - healthBarPadding * 2),
 	        healthBarHeight - healthBarPadding * 2);
-	    GUILayout.BeginArea(bar, GUIStyle("BarFull"));
-	    GUILayout.EndArea();
+	    GUI.DrawTexture(bar, barFull);
 
-	GUILayout.EndArea();
+	    // Player HP Bar Segments
+	    SetGuiColor(HPBarSegmentColor);
 
+	    // Major Segments
+
+	    var position:float;
+	    var ratio:float;
+
+	    for (i = 0; i < healthBarMajorSegments+1; i++){
+	    	ratio = i * (1.0/healthBarMajorSegments);
+	    	position = healthBarPadding + ratio * (healthBarWidth - healthBarPadding * 2);
+
+	    	bar = Rect(position - healthBarMajorSegmentWidth/2, healthBarPadding,
+	    		healthBarMajorSegmentWidth, healthBarMajorSegmentHeight);
+	    	GUI.DrawTexture(bar, barFull);
+
+	    	for (j = 1; j < healthBarMinorSegments; j++){
+	    		ratio = j * (1.0/healthBarMinorSegments/healthBarMajorSegments) + i * (1.0/healthBarMajorSegments);;
+	    		position = healthBarPadding + ratio * (healthBarWidth - healthBarPadding * 2);
+
+	    		bar = Rect(position - healthBarMinorSegmentWidth/2, healthBarPadding,
+	    			healthBarMinorSegmentWidth, healthBarMinorSegmentHeight);
+	    		GUI.DrawTexture(bar, barFull);
+	    	}
+
+	    }
+
+	GUI.EndGroup();
 
 	// AI HP
 
@@ -216,7 +262,7 @@ function OnGUI () {
 
 	var lineNumber:int = 0;
 
-		for (var i:int = 0; i < AIs.length; i++){
+		for (i = 0; i < AIs.length; i++){
 			var ai:AIController = AIs[i];
 			if (ai.isDead){
 				continue;
