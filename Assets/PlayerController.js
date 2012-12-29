@@ -45,7 +45,7 @@ function Start () {
 
 	hint = gameObject.Find("Hint").GetComponent(GUIText);
 	hint.text = "Use WSAD to move, Left Mouse Button to drag camera, 1/2/3/4 for Abilities.";
-	hint.material.color = PrimaryTextColor;
+	hint.material.color = SecondaryTextColor;
 
 	centerText = gameObject.Find("CenterText").GetComponent(FadeText);
 	LevelInit();
@@ -183,6 +183,9 @@ private var healthBarMajorSegmentHeight:float = healthBarHeight - healthBarPaddi
 private var healthBarMinorSegmentWidth:float = 2;
 private var healthBarMinorSegmentHeight:float = healthBarHeight - healthBarPadding*2;
 
+private var healthBarTextHeight:float = 15;
+private var healthBarTextWidth:float = 200;
+
 private var aiHPBarHeight:float = 5;
 private var aiHPBarMarginX:float = 20;
 private var aiHPBarMarginY:float = 100;
@@ -192,6 +195,12 @@ private var aiHPBarWidth:float = 100;
 private var abilityButtonMargin:float = 20;
 private var abilityButtonSize:float = 80;
 private var abilityButtonPadding:float = 10;
+
+private var abilityButtonKeyLabelOffsetX:float = 18;
+private var abilityButtonKeyLabelOffsetY:float = 7;
+
+private var normalFontSize:float = 12;
+private var bigFontSize:float = 30;
 
 function OnGUI () {
 	if (!levelInitComplete)
@@ -214,7 +223,7 @@ function OnGUI () {
 	healthBarWidth = Screen.width - healthBarMargin * 2;
 	SetGuiColor(BackgroundColor());
 
-	GUI.BeginGroup(Rect(healthBarMargin, healthBarMargin, healthBarWidth, healthBarHeight));
+	GUI.BeginGroup(Rect(healthBarMargin, healthBarMargin, healthBarWidth, healthBarHeight + healthBarTextHeight));
 
 		GUI.DrawTexture(Rect(0,0,healthBarWidth, healthBarHeight), barEmpty);
 
@@ -238,7 +247,7 @@ function OnGUI () {
 
 	    	bar = Rect(position - healthBarMajorSegmentWidth/2, healthBarPadding,
 	    		healthBarMajorSegmentWidth, healthBarMajorSegmentHeight);
-	    	GUI.DrawTexture(bar, barFull);
+	    	GUI.DrawTexture(bar, barEmpty);
 
 	    	for (j = 1; j < healthBarMinorSegments; j++){
 	    		ratio = j * (1.0/healthBarMinorSegments/healthBarMajorSegments) + i * (1.0/healthBarMajorSegments);;
@@ -246,10 +255,31 @@ function OnGUI () {
 
 	    		bar = Rect(position - healthBarMinorSegmentWidth/2, healthBarPadding,
 	    			healthBarMinorSegmentWidth, healthBarMinorSegmentHeight);
-	    		GUI.DrawTexture(bar, barFull);
+	    		GUI.DrawTexture(bar, barEmpty);
 	    	}
-
 	    }
+	    
+
+	    SetGuiColor(SecondaryTextColor);
+
+	    if (HealthRatio() < 0.5 && HealthRatio() > 0.25){
+		    ratio = 0.25;
+		    position = healthBarPadding + ratio * (healthBarWidth - healthBarPadding * 2);
+		    GUI.Label(Rect(position,healthBarHeight,healthBarTextWidth,healthBarTextHeight), "Rage");
+	    }
+
+	    if (HealthRatio() < 0.75 && HealthRatio() > 0.5){
+		    ratio = 0.5;
+		    position = healthBarPadding + ratio * (healthBarWidth - healthBarPadding * 2);
+		    GUI.Label(Rect(position,healthBarHeight,healthBarTextWidth,healthBarTextHeight), "Unlock 4th Ability");	    	
+	    }
+
+	    if (HealthRatio() > 0.75){
+		    ratio = 0.75;
+		    position = healthBarPadding + ratio * (healthBarWidth - healthBarPadding * 2);
+		    GUI.Label(Rect(position,healthBarHeight,healthBarTextWidth,healthBarTextHeight), "Unlock 3rd Ability");
+	    }
+
 
 	GUI.EndGroup();
 
@@ -258,7 +288,8 @@ function OnGUI () {
 	var aiHPBarTotalHeight:float = AIs.length * (aiHPBarHeight+aiHPBarPadding) + aiHPBarPadding;
 
 	SetGuiColor(BackgroundColor());
-	GUILayout.BeginArea(Rect(aiHPBarMarginX, aiHPBarMarginY, aiHPBarWidth, aiHPBarTotalHeight),  GUIStyle("BarEmpty"));
+	GUI.BeginGroup(Rect(aiHPBarMarginX, aiHPBarMarginY, aiHPBarWidth, aiHPBarTotalHeight));
+	GUI.DrawTexture(Rect(0,0,aiHPBarWidth, aiHPBarTotalHeight), barEmpty);
 
 	var lineNumber:int = 0;
 
@@ -271,13 +302,11 @@ function OnGUI () {
 		    bar = Rect(aiHPBarPadding, aiHPBarPadding+lineNumber*(aiHPBarHeight+aiHPBarPadding),
 		        ai.health/ai.maxHealth * (aiHPBarWidth - aiHPBarPadding * 2),
 		        aiHPBarHeight);
-		    GUILayout.BeginArea(bar, GUIStyle("BarFull"));
-		    GUILayout.EndArea();
-
+		    GUI.DrawTexture(bar, barFull);		    
 		    lineNumber++;
 		}
 
-	GUILayout.EndArea();	
+	GUI.EndGroup();
 
 	SetGuiColor(Color.white);
 
@@ -286,6 +315,8 @@ function OnGUI () {
 		var r:Rect = Rect(abilityButtonMargin + i * (abilityButtonSize + abilityButtonPadding),
 			Screen.height - abilityButtonMargin - abilityButtonSize,
 			abilityButtonSize, abilityButtonSize);
+		var buttonRect;
+
 		var ability:Ability = i;
 
 		if (!AbilityVisible(i))
@@ -297,8 +328,26 @@ function OnGUI () {
 			SetGuiColor(Color(0.2, 0.2, 0.2, 0.2));
 		}
 
+
 		if (GUI.Button (r, GUIContent(ability.ToString(), t))) {
 			UseAbility(i);
+		}
+
+		SetGuiColor(KeyLabelTextColor);
+
+		// Add Key Buttons
+		if (AbilityAvailable(i)){
+			buttonRect = Rect(r.x + abilityButtonKeyLabelOffsetX, r.y + abilityButtonKeyLabelOffsetY,
+			 r.width, r.height);
+			GUI.Label(buttonRect, (i+1).ToString());
+		}else{
+			// buttonRect = Rect(r.x + r.width/2, r.y + r.height/2,
+			//  r.width, r.height);			
+			GUI.skin.label.alignment = TextAnchor.MiddleCenter;
+			GUI.skin.label.fontSize = bigFontSize;
+			GUI.Label(r, CoolDownTimeString(i));
+			GUI.skin.label.alignment = TextAnchor.UpperLeft;
+			GUI.skin.label.fontSize = normalFontSize;
 		}
 
 		SetGuiColor(Color.white);
@@ -410,6 +459,17 @@ private function AbilityAvailable(i:int):boolean{
 		return false;
 
 	return true;
+}
+
+private function CoolDownTimeString(i:int):String{
+	var secondsRemaining:float = AbilityCooldownTime[i] - (Time.time - AbilityLastUsed[i]);
+
+	if (secondsRemaining >= 1.0){
+		var secondsInInt:int = Mathf.Floor(secondsRemaining);
+		return secondsInInt.ToString();
+	}
+
+	return "";
 }
 
 private function UseAbility(i:int){

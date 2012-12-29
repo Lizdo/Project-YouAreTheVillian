@@ -70,6 +70,10 @@ public function Heal(amount:float){
 		health = maxHealth;
 }
 
+public function HealthRatio():float{
+    return health/maxHealth;
+}
+
 
 //Wait for an animation to be a certain amount complete
 public function WaitForAnimation(name:String, ratio:float, play:boolean){
@@ -112,8 +116,8 @@ public static var HPBarSegmentColor:Color = ColorWithHex(0x27292f);
 public static var TargetArrorColor:Color = PlayerDamageTextColor;
 
 public static var PrimaryTextColor:Color = ColorWithHex(0xe2dfd9);
-public static var SecondaryTextColor:Color = ColorWithHex(0x31343c);
-
+public static var SecondaryTextColor:Color = ColorWithHex(0xbac0bf);
+public static var KeyLabelTextColor:Color = ColorWithHex(0x7a7e7e);
 
 public static var DefaultGUIColor:Color = ColorWithHex(0x742f15);
 
