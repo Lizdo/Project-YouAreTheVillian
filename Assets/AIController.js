@@ -542,6 +542,10 @@ private function MoveTowardTarget(){
 		speedRatio *= 0.5;
 	}
 
+	if (player.AffectedByAvatar(this)){
+		speedRatio *= 0.5;
+	}
+
 	transform.position = Vector3.MoveTowards(transform.position, targetPosition, speed * Time.deltaTime * speedRatio);
 
 

@@ -17,14 +17,19 @@ public var currentAbility:Ability;
 public var state:State;
 
 private var enraged:boolean;
+public var avatar:boolean;
 
 ///////////////////////////
 // Main Updates
 ///////////////////////////
 
+private var sphere:GameObject;
+
 function Awake(){
 	//Application.targetFrameRate = 30;
 	mainCamera = Camera.main;
+	sphere = transform.Find("Sphere").gameObject;
+	sphere.renderer.enabled = false;
 }
 
 private var hint:GUIText;
@@ -182,6 +187,17 @@ public function AffactedByCurrentAbility(ai:AIController):boolean{
 	}
 
 	return false;
+}
+
+
+public function AffectedByAvatar(ai:AIController):boolean{
+	if (!avatar)
+		return false;
+
+	var distance:float = Vector3.Distance(Position(), ai.Position());
+	if (distance <= AvatarRadius){
+		return true;
+	}
 }
 
 ///////////////////////////
@@ -407,14 +423,14 @@ enum Ability{
 	BaseAttack,
 	Cleave,
 	Stomp,
-	Corruption
+	Avatar
 }
 
 private var abilityTargetLocation:Vector3;
 
 private var AbilityCastTime:float[] = [1,1.5,1.5,3];
-private var abilityTransitionTime:float[] = [0.5, 0.5, 0.5, 2];
-private var AbilityCooldownTime:float[] = [0f,10f,15f,10f];
+private var abilityTransitionTime:float[] = [0.5, 0.5, 0.5, 0.5];
+private var AbilityCooldownTime:float[] = [0f,10f,15f,60f];
 private var AbilityLastUsed:float[] = [-100f,-100f,-100f,-100f];
 private var AbilityDamage:float[] = [50f, 70f, 150f, 100f];
 private var AbilityRange:float[] = [30f, 20f, 20f, 20f];
@@ -462,8 +478,10 @@ private function AbilityVisible(i:int):boolean{
 }
 
 private function AbilityAvailable(i:int):boolean{
-	// TODO: Implement the other three abilities.
-	if (i > 2)
+	if (i == 2 && HealthRatio() > 0.75)
+		return false;
+
+	if (i == 3 && HealthRatio() > 0.5)
 		return false;
 
 	if (!AbilityVisible(i))
@@ -517,6 +535,9 @@ private function ProcessAbility(){
 	SetState(State.Idle);
 }
 
+private var AvatarDuration:float = 30;
+private var AvatarRadius:float = 20;
+
 private function ResolveAbility(){
 	for (var ai:AIController in EnemyInAbilityRange()){
 		DealDamageToTarget(ai);
@@ -532,7 +553,23 @@ private function ResolveAbility(){
 		}		
 	}
 
+	switch (currentAbility){
+		case Ability.Avatar:
+			SetAvatarState();
+			yield WaitForSeconds(AvatarDuration);
+			RemoveAvatarState();
+			break;
+	}
+}
 
+private function SetAvatarState(){
+	avatar = true;
+	sphere.renderer.enabled = true;
+}
+
+private function RemoveAvatarState(){
+	avatar = false;
+	sphere.renderer.enabled = false;
 }
 
 private function EnemyInAbilityRange():Array{
@@ -575,10 +612,14 @@ private function DealDamageToTarget(ai:AIController){
 	var damageMultiplier:float = 1.0;
 
 	if (enraged){
-		damageMultiplier *= 2;
+		damageMultiplier *= 1.2;
 	}
 
-	var amount:float = AbilityDamage[currentAbility];
+	if (avatar){
+		damageMultiplier *= 1.2;
+	}
+
+	var amount:float = AbilityDamage[currentAbility] * damageMultiplier;
 	print("Damaging" + ai.ToString());
 	ai.TakeDamage(amount);
 	AddDamageTextOnTarget(ai, amount);
@@ -634,10 +675,18 @@ private function PlayAbilityAnimation(attackAnim:boolean){
 	var animationState:AnimationState = animation[animName];
 	var length:float = animationState.length;
 
+	var speedBonus:float = 1.0;
+
+	if (avatar)
+		speedBonus *= 1.2;
+
+	if (enraged)
+		speedBonus *= 1.2;
+
 	if (attackAnim){
-		animationState.speed = length/(AbilityCastTime[currentAbility]);
+		animationState.speed = length/(AbilityCastTime[currentAbility]) * speedBonus;
 	}else{
-		animationState.speed = length/abilityTransitionTime[currentAbility];
+		animationState.speed = length/abilityTransitionTime[currentAbility] * speedBonus;
 	}
 
 	if (attackAnim){
@@ -652,12 +701,13 @@ private function PlayAbilityAnimation(attackAnim:boolean){
 ///////////////////////////
 
 private var AIAmount:int[] = [2,17,6];
-public static var AIs:Array = new Array();
+public static var AIs:Array;
 
 function SpawnAI(){
 	var prefab:GameObject = Resources.Load("AI", GameObject);
 	var ai:AIController;
 	var i:int;
+	AIs = new Array();
 
 	for (i = AIAmount[0] - 1; i >= 0; i--) {
 		ai = Instantiate(prefab).GetComponent(AIController);
@@ -760,12 +810,20 @@ private function UpdateMovement () {
 		inputVerticalValue = ((1 - Mathf.Abs(inputHorizontalValue)) * 0.5 + 0.5) * inputVerticalValue;
 	}
 
+	var speedBonus:float = 1;
+
+	if (avatar)
+		speedBonus *= 1.2;
+
+	if (enraged)
+		speedBonus *= 1.2;
+
 	if (inputVerticalValue > 0){
 		// Move Forawrd
-		transform.position -= Quaternion.Euler(0,rotationY,0) * Vector3.forward * Time.deltaTime * inputVerticalValue * speed;
+		transform.position -= Quaternion.Euler(0,rotationY,0) * Vector3.forward * Time.deltaTime * inputVerticalValue * speed * speedBonus;
 		SetState(State.MovingForward);
 	}else if (inputVerticalValue < 0){
-		transform.position -= Quaternion.Euler(0,rotationY,0) * Vector3.forward * Time.deltaTime * inputVerticalValue * reverseSpeed;
+		transform.position -= Quaternion.Euler(0,rotationY,0) * Vector3.forward * Time.deltaTime * inputVerticalValue * reverseSpeed * speedBonus;
 		SetState(State.MovingBackward);
 	}else if (inputHorizontalValue < 0){
 		SetState(State.MovingLeft);

@@ -9,18 +9,20 @@ This is my first test entry for LD25… However it seems not possible to finish 
 - Camera & Control
 - Rough Enemy AI
 - Rough UI
-- Ability Framework
+- Abilities
 
 ###Missing Features:
 
-- Animations
-- Player Ability Implementation
-- Enemy avoidance AI
 - Enemy Abilities
+- Ability Tooltip
 
 ###[Play the current build!](http://htmlpreview.github.com/?https://github.com/Lizdo/Project-YouAreTheVillian/blob/master/Export/Export.html)
-(Not very playable...)
+(Warning: Unfinished...)
 
+
+------
+
+###Updates
 
 #### Update (12/17)
 
@@ -41,3 +43,10 @@ This is my first test entry for LD25… However it seems not possible to finish 
 
 - Stomp Ability
 - Game Init/Fail Sequence
+
+#### Update (12/29)
+
+- Avatar Ability
+- Enrage When HP < 25%
+- HP Bar Segments
+- Ability Unlock

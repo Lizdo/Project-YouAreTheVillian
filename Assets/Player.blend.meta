@@ -90,6 +90,8 @@ ModelImporter:
     7400020: CleaveTransition
     7400022: Stomp
     7400024: StompTransition
+    7400026: Avatar
+    7400028: AvatarTransition
     9500000: //RootNode
     11100000: //RootNode
     13700000: Player
@@ -330,6 +332,50 @@ ModelImporter:
       takeName: StompTransition
       firstFrame: -1
       lastFrame: 39
+      wrapMode: 1
+      orientationOffsetY: 0
+      level: 0
+      cycleOffset: 0
+      loop: 0
+      loopBlend: 0
+      loopBlendOrientation: 0
+      loopBlendPositionY: 0
+      loopBlendPositionXZ: 0
+      keepOriginalOrientation: 0
+      keepOriginalPositionY: 1
+      keepOriginalPositionXZ: 0
+      heightFromFeet: 0
+      mirror: 0
+      keepAdditionalBonesAnimation: 1
+      bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
+      curves: []
+      skeletonMaskElements: []
+    - name: Avatar
+      takeName: Avatar
+      firstFrame: -1
+      lastFrame: 68
+      wrapMode: 1
+      orientationOffsetY: 0
+      level: 0
+      cycleOffset: 0
+      loop: 0
+      loopBlend: 0
+      loopBlendOrientation: 0
+      loopBlendPositionY: 0
+      loopBlendPositionXZ: 0
+      keepOriginalOrientation: 0
+      keepOriginalPositionY: 1
+      keepOriginalPositionXZ: 0
+      heightFromFeet: 0
+      mirror: 0
+      keepAdditionalBonesAnimation: 1
+      bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
+      curves: []
+      skeletonMaskElements: []
+    - name: AvatarTransition
+      takeName: AvatarTransition
+      firstFrame: -1
+      lastFrame: 28
       wrapMode: 1
       orientationOffsetY: 0
       level: 0
