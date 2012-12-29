@@ -72,22 +72,22 @@ public function Setup(){
 		case AIClass.Tank:
 			maxHealth = 1000;
 			dps = 15;
-			speed = 5;
-			color = ColorWithHex(0xa33625);
+			speed = 10;
+			color = TankColor;
 			attackRadius = 10;
 			break;
 		case AIClass.DPS:
 			maxHealth = 500;
 			dps = 30;
-			speed = 6;
-			color = ColorWithHex(0x6587a3);
+			speed = 12;
+			color = DPSColor;
 			attackRadius = 20;
 			break;
 		case AIClass.Healer:
 			maxHealth = 800;
 			dps = 10;
-			speed = 2.5;
-			color = ColorWithHex(0x56a362);
+			speed = 10;
+			color = HealerColor;
 			attackRadius = 8;
 			break;
 	}
@@ -173,7 +173,11 @@ private function UpdateAI(){
 
 	// Base Attack
 	if (!avoidingPlayer && !attackInProgress && PositionIsValid()){
-		Attack();
+		if (aiClass == AIClass.DPS && Random.value < 0.01){
+			AOEAttack();
+		}else{
+			Attack();
+		}
 	}
 
 	switch (aiClass){
@@ -224,6 +228,61 @@ private function Attack(){
 	//yield WaitForAnimation("Attack", 0.99, false);
 	yield WaitForSeconds(Random.value * 0.5 + 0.1);
 	attackInProgress = false;
+}
+
+private function AOEAttack(){
+	attackInProgress = true;
+	yield WaitForAnimation("Attack", 0.6, true);
+
+	SpawnAOERing();
+	yield WaitForSeconds(AOEDuration);
+
+	if (PlayerInAOERadius()){
+		DealAOEDamage();
+	}
+
+	AOERing.FadeOut();
+
+	yield WaitForSeconds(Random.value * 0.5 + 0.1);
+	attackInProgress = false;	
+}
+
+private function PopupText(text:String){
+	var v:Vector3 = Camera.main.WorldToViewportPoint(Position());
+	SpawnFloatingText(text, v.x, v.y, AIDamageTextColor);
+}
+
+private var AOETargetPosition:Vector3;
+private var AOERadius:float = 10.0;
+private var AOEDuration:float = 3;
+private var AOEDamageMultiplier:float = 4.0;
+private var AOERing:Ring;
+
+private var AOERingOffset:float = 5;
+
+
+private function SpawnAOERing(){
+	AOERing = Instantiate(Resources.Load("Ring", GameObject)).GetComponent(Ring);
+	// Slight offset to the player position
+	AOETargetPosition = player.Position() + Vector3(AOERingOffset * Random.value, 0.1, AOERingOffset * Random.value);
+
+	AOERing.SetColor(color);
+	AOERing.SetPositionAndRadius(AOETargetPosition, AOERadius);
+}
+
+private function PlayerInAOERadius():boolean{
+	if (Vector3.Distance(player.Position(), AOETargetPosition) < AOERadius){
+		return true;
+	}
+	return false;
+}
+
+private function DealAOEDamage(){
+	var amount:float = dps * AOEDamageMultiplier;
+	player.TakeDamage(amount);
+	//TODO: Play hurt feedback
+	print("AOEDamage To Player");
+	PopupText("Critical Damge: " + amount.ToString());
 }
 
 private function Die(){

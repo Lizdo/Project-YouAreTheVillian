@@ -37,12 +37,12 @@ function Start () {
 	skin = Resources.Load("GUI", GUISkin);
 	var arrow:GameObject = Resources.Load("Arrow", GameObject);
 	targetArrow = Instantiate(arrow, Vector3.zero, Quaternion.identity).GetComponent(GUIText);
-	targetArrow.material.color = ColorWithHex(0x741909);
+	targetArrow.material.color = TargetArrorColor;
 	SetState(State.Idle);
 
 	hint = gameObject.Find("Hint").GetComponent(GUIText);
 	hint.text = "Use WSAD to move, Left Mouse Button to drag camera, 1/2/3/4 for Abilities.";
-	hint.material.color = ColorWithHex(0xe2dfd9);
+	hint.material.color = PrimaryTextColor;
 
 	centerText = gameObject.Find("CenterText").GetComponent(FadeText);
 	LevelInit();
@@ -197,7 +197,7 @@ function OnGUI () {
 	SetGuiColor(BackgroundColor());
 	GUILayout.BeginArea(Rect(healthBarMargin, healthBarMargin, healthBarWidth, healthBarHeight),  GUIStyle("BarEmpty"));
 
-		SetGuiColor(ColorWithHex(0x742f15));
+		SetGuiColor(DefaultGUIColor);
 	    bar = Rect(healthBarPadding, healthBarPadding,
 	        health/maxHealth * (healthBarWidth - healthBarPadding * 2),
 	        healthBarHeight - healthBarPadding * 2);
@@ -455,7 +455,7 @@ private function DealDamageToTarget(ai:AIController){
 
 private function AddDamageTextOnTarget(ai:AIController, amount:float){
 	var v:Vector3 = Camera.main.WorldToViewportPoint(ai.Center());
-	SpawnFloatingText(amount.ToString(), v.x, v.y, ColorWithHex(0x741909));
+	SpawnFloatingText(amount.ToString(), v.x, v.y, PlayerDamageTextColor);
 }
 
 ///////////////////////////

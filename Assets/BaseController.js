@@ -96,5 +96,21 @@ public function WaitForAnimation(name:String, ratio:float, play:boolean){
  
 }
 
+///////////////////////////
+// Color Definitions
+///////////////////////////
+
+public static var PlayerDamageTextColor:Color = ColorWithHex(0x43464f);
+public static var AIDamageTextColor:Color = ColorWithHex(0x741909);
+
+public static var TankColor:Color = ColorWithHex(0xa33625);
+public static var DPSColor:Color = ColorWithHex(0x6587a3);
+public static var HealerColor:Color = ColorWithHex(0x56a362);
+
+public static var TargetArrorColor:Color = ColorWithHex(0x741909);
+public static var PrimaryTextColor:Color = ColorWithHex(0xe2dfd9);
+
+public static var DefaultGUIColor:Color = ColorWithHex(0x742f15);
+
 
 }
