@@ -121,7 +121,7 @@ public static var TargetArrorColor:Color = PlayerDamageTextColor;
 
 public static var PrimaryTextColor:Color = ColorWithHex(0xe2dfd9);
 public static var SecondaryTextColor:Color = ColorWithHex(0xbac0bf);
-public static var KeyLabelTextColor:Color = ColorWithHex(0x7a7e7e);
+public static var MinorTextColor:Color = ColorWithHex(0x7a7e7e);
 
 public static var DefaultGUIColor:Color = ColorWithHex(0x742f15);
 

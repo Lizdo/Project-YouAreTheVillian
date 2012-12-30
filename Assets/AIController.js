@@ -41,7 +41,6 @@ function Update () {
 	// 	//Once per second
 	// 	SlowUpdate();
 	// }
-
 	if (Time.frameCount % frameSlice == updateID % frameSlice){
 		SlowUpdate();
 	}
@@ -85,7 +84,7 @@ public function Setup(){
 			break;
 		case AIClass.Healer:
 			maxHealth = 800;
-			dps = 10;
+			dps = 5;
 			speed = 10;
 			color = HealerColor;
 			attackRadius = 8;
@@ -278,11 +277,15 @@ private function PlayerInAOERadius():boolean{
 }
 
 private function DealAOEDamage(){
-	var amount:float = dps * AOEDamageMultiplier;
+	var amount:int = dps * AOEDamageMultiplier * (1 + Mathf.Ceil(Random.value * 20)/20);
 	player.TakeDamage(amount);
 	//TODO: Play hurt feedback
 	print("AOEDamage To Player");
-	PopupText("Critical Damge: " + amount.ToString());
+
+	var aoeAbilityText:String = AOEAbilities[Mathf.Floor(Random.value * AOEAbilities.length)];
+
+	player.AddCombatLog(aoeAbilityText);
+	PopupText(aoeAbilityText + ": " + amount.ToString());
 }
 
 private function Die(){
@@ -294,14 +297,21 @@ private function Die(){
 private function DealDamage(){
 	if (target == player){
 		player.TakeDamage(dps);
+		if (aiClass == AIClass.DPS){
+			player.AddCombatLog(DPSAbilities[Mathf.Floor(Random.value * DPSAbilities.length)]);
+		}else if (aiClass == AIClass.Tank){
+			player.AddCombatLog(TankAbilities[Mathf.Floor(Random.value * TankAbilities.length)]);
+		}
 	}else{
 		target.Heal(dps);
+		player.AddCombatLog(HealerAbilities[Mathf.Floor(Random.value * HealerAbilities.length)]);
 	}
 }
 
 private function UpdateHealerAI(){
-	if (target == null)
-		target = RandomAI();
+	// if (target == null)
+	// 	target = RandomAI();
+	target = AIWithLowestHP();
 }
 
 private function UpdateTankAI(){
@@ -319,6 +329,22 @@ private function RandomAI():AIController{
 		ai = PlayerController.AIs[randomIndex];
 	}while(ai == this);
 	return ai;
+}
+
+
+private function AIWithLowestHP(){
+	var lowestHP:float = 100000;
+	var lowestHPAI:AIController;
+	for (var ai:AIController in PlayerController.AIs){
+		if (ai.isDead)
+			continue;
+
+		if (ai.health < lowestHP){
+			lowestHP = ai.health;
+			lowestHPAI = ai;
+		}
+	}
+	return lowestHPAI;
 }
 
 ///////////////////////////
@@ -499,10 +525,14 @@ private var targetPosition:Vector3;
 private var yOffset:float = 0.5;
 
 private function UpdateMovement(){
+	// Still Update Pushback when dead.
 	if (beingPushingBack){
 		UpdatePushBack();
 		return;
 	}
+
+	if (isDead)
+		return;
 
 	RotateTowardTarget();
 	MoveTowardTarget();
@@ -554,6 +584,79 @@ private function MoveTowardTarget(){
 	}
 
 }
+
+private var TankAbilities:String[] = [
+	"Thrash",
+	"Maul",
+	"Growl",
+	"Blood Strike",
+	"Death Coil",
+	"Parry",
+	"Shield Wall",
+	"Pummel",
+	"Provoke"
+];
+
+private var DPSAbilities:String[] = [
+	"Moonfire",
+	"Mangle",
+	"Pounce",
+	"Cyclone",
+	"Swipe",
+	"Kill Shot",
+	"Rapid Fire",
+	"Stampede",
+	"Frostbolt",
+	"Frostfire Bolt",
+	"Raging Blow",
+	"Cleave",
+	"Shadow Bolt",
+	"Corruption",
+	"Fel Flame",
+	"Windfury Attack",
+	"Lightning Bolt",
+	"Shadow Blade",
+	"Kidney Shot",
+	"Sap",
+	"Gouge",
+	"Chi Burst",
+	"Tiger Strikes",
+	"Tiger Palm"
+];
+
+private var HealerAbilities:String[] = [
+	"Flash Heal",
+	"Lay on Hands",
+	"Flash of Light",
+	"Renew",
+	"Prayer of Mending",
+	"Cenarion Ward",
+	"Healing Touch",
+	"Rejuvenation",
+	"Lifebloom",
+	"Healing Surge",
+	"Chain Heal",
+	"Healing Rain",
+	"Chi Torpedo",
+	"Chi Wave",
+	"Healing Sphere"
+];
+
+private var AOEAbilities:String[] = [
+	"Astral Storm",
+	"Death and Decay",
+	"Multi-Shot",
+	"Ice Trap",
+	"Fire Blast",
+	"Frost Nova",
+	"Flamestrike",
+	"Whirlwind",
+	"Rain of Fire",
+	"Earthquake",
+	"Fan of Knives",
+	"Slice and Dice"
+];
+
 
 private function SnapToGround(v:Vector3){
 	// Add a random offset to avoid Z fight

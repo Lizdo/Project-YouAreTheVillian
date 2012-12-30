@@ -6,3 +6,8 @@ TEMP
 Library/ScriptAssemblies/
 *sublime*
 .DS_Store
+*.unityproj
+*.sln
+*.userprefs
+*.pidb
+*csproj*

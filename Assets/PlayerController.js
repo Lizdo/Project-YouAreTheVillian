@@ -25,6 +25,7 @@ public var avatar:boolean;
 
 private var sphere:GameObject;
 
+
 function Awake(){
 	//Application.targetFrameRate = 30;
 	mainCamera = Camera.main;
@@ -33,6 +34,8 @@ function Awake(){
 }
 
 private var hint:GUIText;
+private var combatLog:GUIText;
+
 private var centerText:FadeText;
 
 private var barEmpty:Texture;
@@ -51,6 +54,11 @@ function Start () {
 	hint = gameObject.Find("Hint").GetComponent(GUIText);
 	hint.text = "Use WSAD to move, Left Mouse Button to drag camera, 1/2/3/4 for Abilities.";
 	hint.material.color = SecondaryTextColor;
+
+	combatLog = gameObject.Find("CombatLog").GetComponent(GUIText);
+	combatLog.material.color = MinorTextColor;
+	combatLogLines = new Array();
+	combatLog.text = "";
 
 	centerText = gameObject.Find("CenterText").GetComponent(FadeText);
 	LevelInit();
@@ -368,7 +376,7 @@ function OnGUI () {
 			UseAbility(i);
 		}
 
-		SetGuiColor(KeyLabelTextColor);
+		SetGuiColor(MinorTextColor);
 
 		// Add Key Buttons
 		if (AbilityAvailable(i)){
@@ -389,6 +397,23 @@ function OnGUI () {
 	}
 
 
+}
+
+private var combatLogLines:Array;
+private var maxCombatLogLineCount:int = 10;
+
+public function AddCombatLog(s:String){
+	combatLogLines.Add(s);
+	if (combatLogLines.length > maxCombatLogLineCount){
+		combatLogLines.Shift();
+	}
+
+	var fullText:String = "";
+	for (var i:int; i < combatLogLines.length; i++){
+		fullText = fullText + combatLogLines[i] + "\n";
+	}
+
+	combatLog.text = fullText;
 }
 
 private var guiFadeTime:float = 1.0f;
@@ -741,7 +766,8 @@ function SpawnAI(){
 private var aiSpawnDistance:float = 30.0;
 
 function RandomAIPosition():Vector3{
-	return Quaternion.Euler(0, Random.value * 360, 0) * Vector3(1,0,0) * aiSpawnDistance;
+	var randomOffset:Vector3 = Quaternion.Euler(0, Random.value * 360, 0) * Vector3(1,0,0) * aiSpawnDistance;
+	return transform.position + randomOffset;
 }
 
 
