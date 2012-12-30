@@ -84,7 +84,7 @@ public function Setup(){
 			break;
 		case AIClass.Healer:
 			maxHealth = 800;
-			dps = 5;
+			dps = 20;
 			speed = 10;
 			color = HealerColor;
 			attackRadius = 8;
@@ -309,8 +309,6 @@ private function DealDamage(){
 }
 
 private function UpdateHealerAI(){
-	// if (target == null)
-	// 	target = RandomAI();
 	target = AIWithLowestHP();
 }
 
@@ -333,14 +331,14 @@ private function RandomAI():AIController{
 
 
 private function AIWithLowestHP(){
-	var lowestHP:float = 100000;
+	var lowestHPPercentage:float = 100000;
 	var lowestHPAI:AIController;
 	for (var ai:AIController in PlayerController.AIs){
 		if (ai.isDead)
 			continue;
 
-		if (ai.health < lowestHP){
-			lowestHP = ai.health;
+		if (ai.HealthRatio() < lowestHPPercentage){
+			lowestHPPercentage = ai.HealthRatio();
 			lowestHPAI = ai;
 		}
 	}

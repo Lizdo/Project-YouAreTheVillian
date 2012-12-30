@@ -230,12 +230,13 @@ private var healthBarTextHeight:float = 15;
 private var healthBarTextWidth:float = 200;
 
 private var aiHPBarHeight:float = 5;
-private var aiHPBarMarginX:float = 20;
+private var aiHPBarMarginX:float = healthBarMargin;
 private var aiHPBarMarginY:float = 100;
 private var aiHPBarPadding:float = 5;
 private var aiHPBarWidth:float = 100;
 
-private var abilityButtonMargin:float = 20;
+private var abilityButtonMarginX:float = healthBarMargin-8;	// Hack to make  the left align.
+private var abilityButtonMarginY:float = healthBarMargin;
 private var abilityButtonSize:float = 80;
 private var abilityButtonPadding:float = 10;
 
@@ -244,6 +245,11 @@ private var abilityButtonKeyLabelOffsetY:float = 7;
 
 private var normalFontSize:float = 12;
 private var bigFontSize:float = 30;
+
+private var abilityButtonTooltipMarginX:float = healthBarMargin;
+private var abilityButtonTooltipMarginY:float = abilityButtonMarginY + abilityButtonPadding + abilityButtonTooltipHeight + abilityButtonSize;
+private var abilityButtonTooltipHeight:float = 30;
+private var abilityButtonTooltipWidth:float = abilityButtonSize*4 + abilityButtonPadding*3;
 
 function OnGUI () {
 	if (!levelInitComplete)
@@ -355,8 +361,8 @@ function OnGUI () {
 
 	// Skill Buttons
 	for (i = 0; i < 4; i++){
-		var r:Rect = Rect(abilityButtonMargin + i * (abilityButtonSize + abilityButtonPadding),
-			Screen.height - abilityButtonMargin - abilityButtonSize,
+		var r:Rect = Rect(abilityButtonMarginX + i * (abilityButtonSize + abilityButtonPadding),
+			Screen.height - abilityButtonMarginY - abilityButtonSize,
 			abilityButtonSize, abilityButtonSize);
 		var buttonRect;
 
@@ -372,7 +378,7 @@ function OnGUI () {
 		}
 
 
-		if (GUI.Button (r, GUIContent(ability.ToString(), t))) {
+		if (GUI.Button (r, GUIContent(ability.ToString(), t, TooltipForAbility(ability)))) {
 			UseAbility(i);
 		}
 
@@ -395,6 +401,24 @@ function OnGUI () {
 
 		SetGuiColor(Color.white);
 	}
+
+	if (GUI.tooltip != ""){
+
+		var tooltipRect:Rect = Rect(abilityButtonTooltipMarginX,
+			Screen.height - abilityButtonTooltipMarginY - abilityButtonTooltipHeight,
+			abilityButtonTooltipWidth,
+			abilityButtonTooltipHeight);
+
+		SetGuiColor(BackgroundColor());
+		//GUI.DrawTexture(tooltipRect, barEmpty);
+
+		GUI.skin.label.alignment = TextAnchor.UpperLeft;
+		// Skill Button Tooltip
+		SetGuiColor(MinorTextColor);
+		GUI.Label(tooltipRect, GUI.tooltip);
+	}
+
+
 
 
 }
@@ -435,8 +459,8 @@ private function SetGuiColor(c:Color){
 }
 
 private function BackgroundColor():Color{
-	var c:Color = ColorWithHex(0x9cbcbd);
-	c.a = 0.4;
+	var c:Color = DefaultGUIBackgroundColor;//ColorWithHex(0x9cbcbd);
+	c.a = 0.2;
 	return c;
 }
 
@@ -457,10 +481,24 @@ private var AbilityCastTime:float[] = [1,1.5,1.5,3];
 private var abilityTransitionTime:float[] = [0.5, 0.5, 0.5, 0.5];
 private var AbilityCooldownTime:float[] = [0f,10f,15f,60f];
 private var AbilityLastUsed:float[] = [-100f,-100f,-100f,-100f];
-private var AbilityDamage:float[] = [50f, 70f, 150f, 100f];
+private var AbilityDamage:float[] = [50f, 70f, 150f, 0f];
 private var AbilityRange:float[] = [30f, 20f, 20f, 20f];
 private var AbilityAngle:float[] = [180f, 120f, 0f, 0f];
 private var AbilityTargetNumber:int[] = [1, 100, 100, 0];
+private var AbilityAdditionalInfo:String[] = [
+	"Basic attack, nothing fancy.",
+	"Attack all enemies in the front, use it often.",
+	"Deal massive damage and push back all surrounding enemies.",
+	"Ultimate. Increase overall speed and slow down surrounding enemies."
+];
+
+private function TooltipForAbility(i:int){
+	var ability:Ability = i;
+
+	var tooltipString:String = String.Format("Cooldown: {0} seconds      Damage: {1}\n{2}", AbilityCooldownTime[i].ToString(), 	AbilityDamage[i].ToString(),	AbilityAdditionalInfo[i].ToString());
+
+	return tooltipString;
+}
 
 private var target:AIController;
 private var targetArrow:GUIText;
@@ -634,6 +672,9 @@ private function EnemyInAbilityRange():Array{
 }
 
 private function DealDamageToTarget(ai:AIController){
+	if (ai.isDead)
+		return;
+
 	var damageMultiplier:float = 1.0;
 
 	if (enraged){
