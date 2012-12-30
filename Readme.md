@@ -13,8 +13,9 @@ This is my first test entry for LD25… However it seems not possible to finish 
 
 ###Missing Features:
 
-- Enemy Abilities
-- Ability Tooltip
+- Balancing
+- Ground Deco
+
 
 ###[Play the current build!](http://htmlpreview.github.com/?https://github.com/Lizdo/Project-YouAreTheVillian/blob/master/Export/Export.html)
 (Warning: Unfinished...)
@@ -50,3 +51,9 @@ This is my first test entry for LD25… However it seems not possible to finish 
 - Enrage When HP < 25%
 - HP Bar Segments
 - Ability Unlock
+
+#### Update (12/30)
+
+- Ability Tooltip
+- AI Tweaks
+- UI Tweaks
