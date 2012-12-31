@@ -111,10 +111,13 @@ function LevelComplete(){
 }
 
 function LevelFailed(){
+	Renderer().material.color = Color.gray;
+	PlayAnimation("Die");
+	yield WaitForSeconds(1);
 	centerText.SetText("Game Over");
 	//TODO: Play Fail Anim...
 	centerText.FadeIn();
-	yield WaitForSeconds(3);
+	yield WaitForSeconds(10);
 	centerText.FadeOut();
 	yield WaitForSeconds(3);
 	Application.LoadLevel(0);
@@ -844,7 +847,7 @@ private function PlayAbilityAnimation(attackAnim:boolean){
 
 private var WorldSize:float = 2000;
 
-private var GrassAmount:int = 2000;
+private var GrassAmount:int = 3000;
 
 function SpawnProps(){
 	// Add Grass, Stones
