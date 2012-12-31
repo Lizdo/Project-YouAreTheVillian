@@ -77,7 +77,7 @@ private var phaseTwoStarted:boolean;
 private var phaseThreeStarted:boolean;
 
 function LevelInit(){
-	centerText.SetText("Press Any Key to Start");
+	centerText.SetText("Press any Key to Start");
 	centerText.FadeIn();
 }
 
@@ -147,6 +147,9 @@ function LevelComplete(){
 }
 
 function LevelFailed(){
+	// Stop all other animations/attacks...etc, because it's game over here.
+	StopAllCoroutines();
+
 	Renderer().material.color = Color.gray;
 	PlayAnimation("Die");
 	yield WaitForSeconds(1);
