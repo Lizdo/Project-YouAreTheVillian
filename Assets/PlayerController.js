@@ -31,6 +31,7 @@ function Awake(){
 	mainCamera = Camera.main;
 	sphere = transform.Find("Sphere").gameObject;
 	sphere.renderer.enabled = false;
+	SpawnProps();
 }
 
 private var hint:GUIText;
@@ -82,6 +83,7 @@ function LevelInit(){
 	levelInitComplete = true;
 	guiFadeStartTime = Time.time;
 	guiFading = true;
+
 	SpawnAI();
 
 	yield WaitForSeconds(1);
@@ -765,6 +767,32 @@ private function PlayAbilityAnimation(attackAnim:boolean){
 ///////////////////////////
 // Game Logic
 ///////////////////////////
+
+private var WorldSize:float = 2000;
+
+private var GrassAmount:int = 2000;
+
+function SpawnProps(){
+	// Add Grass, Stones
+	var grassA:GameObject = Resources.Load("GrassA", GameObject);
+	var grassB:GameObject = Resources.Load("GrassB", GameObject);
+	var grassC:GameObject = Resources.Load("GrassC", GameObject);
+
+	var grasses:GameObject[] = [grassA, grassB, grassC];
+
+	for (var i:int = 0; i<GrassAmount; i++){
+		var randomLocation:Vector3 = Vector3(Random.Range(-WorldSize, WorldSize),
+			0, Random.Range(-WorldSize, WorldSize));
+		var randomGrass:GameObject = grasses[Random.Range(0, grasses.length)];
+
+		var grass:GameObject = Instantiate(randomGrass, randomLocation, randomGrass.transform.rotation);
+
+		// Rotate after instantiation so that the rotation in the prefab is not messed up
+		grass.transform.RotateAround(randomLocation, Vector3.up, Random.Range(0.0, 360.0));
+
+	}
+}
+
 
 private var AIAmount:int[] = [2,17,6];
 public static var AIs:Array;
