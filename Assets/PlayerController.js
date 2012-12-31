@@ -413,6 +413,15 @@ function OnGUI () {
 		        ai.health/ai.maxHealth * (aiHPBarWidth - aiHPBarPadding * 2),
 		        aiHPBarHeight);
 		    GUI.DrawTexture(bar, barFull);		    
+
+		    // Add a square for current target
+		    if (ai == target){
+		    	bar = Rect(0, aiHPBarPadding+lineNumber*(aiHPBarHeight+aiHPBarPadding),
+		    		2, aiHPBarHeight);
+		    	SetGuiColor(HPBarSegmentColor);
+		    	GUI.DrawTexture(bar, barFull);
+		    }
+
 		    lineNumber++;
 		}
 
