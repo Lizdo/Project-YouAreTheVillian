@@ -71,23 +71,23 @@ public function Setup(){
 		case AIClass.Tank:
 			maxHealth = 2000;
 			dps = 15;
-			speed = 20;
+			speed = 24;
 			color = TankColor;
 			attackRadius = 10;
 			break;
 		case AIClass.DPS:
-			maxHealth = 500;
+			maxHealth = 300;
 			dps = 50;
-			speed = 24;
+			speed = 23;
 			color = DPSColor;
 			attackRadius = 20;
 			break;
 		case AIClass.Healer:
-			maxHealth = 800;
+			maxHealth = 500;
 			dps = 5;
 			speed = 20;
 			color = HealerColor;
-			attackRadius = 8;
+			attackRadius = 20;
 			break;
 	}
 	Renderer().material.color = color;
@@ -113,6 +113,7 @@ public function CompareTo(other:Object) : int{
 private var beingPushingBack:boolean;
 private var pushBackStartTime:float;
 private var pushBacktime:float;
+private var pushBackStunTime:float = 0.6;
 private var pushBackDistance:float;
 
 private var pushBackStartPosition:Vector3;
@@ -124,10 +125,10 @@ public function PushBack(distance:float, time:float){
 	pushBacktime = time;
 	pushBackDistance = distance;
 
-	pushBackStartPosition = transform.position;
-	pushBackMovementTarget = Vector3.MoveTowards(transform.position, player.Position(), -pushBackDistance);
+	pushBackStartPosition = SnapToGround(transform.position);
+	pushBackMovementTarget = SnapToGround(Vector3.MoveTowards(Position(), player.Position(), -pushBackDistance));
 
-	yield WaitForSeconds(time);
+	yield WaitForSeconds(time + pushBackStunTime);
 	beingPushingBack = false;
 }
 
@@ -255,7 +256,7 @@ private function PopupText(text:String){
 private var AOETargetPosition:Vector3;
 private var AOERadius:float = 10.0;
 private var AOEDuration:float = 3;
-private var AOEDamageMultiplier:float = 4.0;
+private var AOEDamageMultiplier:float = 30.0;
 private var AOERing:Ring;
 
 private var AOERingOffset:float = 5;
@@ -278,7 +279,7 @@ private function PlayerInAOERadius():boolean{
 }
 
 private function DealAOEDamage(){
-	var amount:int = dps * AOEDamageMultiplier * (1 + Mathf.Ceil(Random.value * 20)/20);
+	var amount:int = Mathf.Round(dps * AOEDamageMultiplier * (Random.Range(1.0, 1.25)));
 	player.TakeDamage(amount);
 	//TODO: Play hurt feedback
 	print("AOEDamage To Player");

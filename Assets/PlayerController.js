@@ -44,7 +44,7 @@ private var barFull:Texture;
 
 function Start () {
 	AlignCameraToBack();
-	maxHealth = 100000;
+	maxHealth = 120000;
 	health = maxHealth;
 	skin = Resources.Load("GUI", GUISkin);
 	var arrow:GameObject = Resources.Load("Arrow", GameObject);
@@ -73,10 +73,48 @@ function Start () {
 
 private var levelStarted:boolean;
 private var levelInitComplete:boolean;
+private var phaseTwoStarted:boolean;
+private var phaseThreeStarted:boolean;
 
 function LevelInit(){
-	centerText.SetText("Click to Start the Game");
+	centerText.SetText("Press Any Key to Start");
 	centerText.FadeIn();
+}
+
+private var phaseTwoHint:String = "You'll be taunted by the enemy Tank (red dude) when he's in range.";
+private var phaseThreeHint:String = "Try to save some cooldowns until you enter Rage Mode.";
+
+function PhaseTwoStart(){
+	hint.text = phaseTwoHint;
+	yield WaitForSeconds(1);
+	hint.text = "";
+	yield WaitForSeconds(0.1);	
+	hint.text = phaseTwoHint;
+	yield WaitForSeconds(0.1);
+	hint.text = "";
+	yield WaitForSeconds(0.1);	
+	hint.text = phaseTwoHint;
+	yield WaitForSeconds(0.1);
+	hint.text = "";
+	yield WaitForSeconds(0.1);	
+	hint.text = phaseTwoHint;	
+}
+
+function PhaseThreeStart(){
+	hint.text = phaseThreeHint;
+	yield WaitForSeconds(1);
+	hint.text = "";
+	yield WaitForSeconds(0.1);	
+	hint.text = phaseThreeHint;
+	yield WaitForSeconds(0.1);	
+	hint.text = "";
+	yield WaitForSeconds(0.1);	
+	hint.text = phaseThreeHint;
+	yield WaitForSeconds(0.1);	
+	hint.text = "";
+	yield WaitForSeconds(0.1);	
+	hint.text = phaseThreeHint;
+	yield WaitForSeconds(0.1);			
 }
 
 function LevelStart(){
@@ -88,11 +126,9 @@ function LevelStart(){
 	guiFading = true;
 
 	SpawnAI();
-
 	yield WaitForSeconds(1);
 
 	guiFading = false;
-
 
 	yield WaitForSeconds(1);
 	centerText.SetText("Kill All Enemys");
@@ -129,6 +165,16 @@ private var EnrageHealthRatio:float = 0.25;
 function Update () {
 	if (levelFail)
 		return;
+
+	if (HealthRatio() < 0.75 && !phaseTwoStarted){
+		phaseTwoStarted = true;
+		PhaseTwoStart();
+	}
+
+	if (HealthRatio() < 0.5 && !phaseThreeStarted){
+		phaseThreeStarted = true;
+		PhaseThreeStart();
+	}	
 
 	if (HealthRatio() < EnrageHealthRatio && !enraged){
 		// Coroutine to enter rage mode, only fire once
@@ -240,24 +286,28 @@ private function CheckVictoryCondition(){
 ///////////////////////////
 
 public function AffactedByCurrentAbility(ai:AIController):boolean{
+	return AffectedByAbility(currentAbility, ai);
+}
+
+private function AffectedByAbility(i:Ability, ai:AIController):boolean{
 	// Not dealing damage, not affected by ability
-	if (AbilityDamage[currentAbility] == 0){
+	if (AbilityDamage[i] == 0){
 		return false;
 	}
 
-	if (Vector3.Distance(ai.Position(), Position()) > AbilityRange[currentAbility])
+	if (Vector3.Distance(ai.Position(), Position()) > AbilityRange[i])
 		return false;
 
 	if (Position() == ai.Position())
 		return true;
 
 	// No Angle Limit
-	if (AbilityAngle[currentAbility] == 0){
+	if (AbilityAngle[i] == 0){
 		return true;
 	}
 
 	var offset:Quaternion = Quaternion.LookRotation(Position() - ai.Position());
-	if (Mathf.Abs(Quaternion.Angle(transform.rotation, offset)) < AbilityAngle[currentAbility]/2){
+	if (Mathf.Abs(Quaternion.Angle(transform.rotation, offset)) < AbilityAngle[i]/2){
 		return true;
 	}
 
@@ -560,9 +610,9 @@ private var AbilityCastTime:float[] = [1,1.5,1.5,3];
 private var abilityTransitionTime:float[] = [0.5, 0.5, 0.5, 0.5];
 private var AbilityCooldownTime:float[] = [0f,10f,15f,60f];
 private var AbilityLastUsed:float[] = [-100f,-100f,-100f,-100f];
-private var AbilityDamage:float[] = [100f, 80f, 110f, 0f];
+private var AbilityDamage:float[] = [100f, 60f, 90f, 0f];
 private var AbilityRange:float[] = [30f, 20f, 20f, 20f];
-private var AbilityAngle:float[] = [180f, 120f, 0f, 0f];
+private var AbilityAngle:float[] = [120f, 120f, 0f, 0f];
 private var AbilityTargetNumber:int[] = [1, 100, 100, 0];
 private var AbilityAdditionalInfo:String[] = [
 	"Basic attack, nothing fancy.",
@@ -583,36 +633,54 @@ private var target:AIController;
 private var targetArrow:GUIText;
 
 private function UpdateTarget(){
-	target = ClosestEnemiesInFront();
-	if (target){
+	// Only Update Target when it's out of range
+	// If Tank is alive, choose Tank as priority
+	if (!target 
+		|| target.isDead
+		||(target.aiClass != AIClass.Tank && TankAlive())
+		||!TargetInBaseAttackRange()){
+		target = ClosestEnemiesInFront();
+	}
+
+	if (target && !target.isDead){
 		targetArrow.enabled = true;
 		var v:Vector3 = Camera.main.WorldToViewportPoint(target.Center());
-		targetArrow.transform.position = Vector3(v.x, v.y + 0.02, 0);
+		targetArrow.transform.position = Vector3(v.x, v.y + 0.05, 0);
 	}else{
 		targetArrow.enabled = false;
 	}
 }
 
+private function TankAlive():boolean{
+	for (var ai:AIController in AIs){
+		if (ai.aiClass == AIClass.Tank && !ai.isDead)
+			return true;
+	}
+	return false;
+}
 
 private function ClosestEnemiesInFront():AIController{
 	var closestDistance:float = 30;
 	var closestAI:AIController;
 
 	for (var ai:AIController in AIs){
-		if (!ai)
+		if (!ai || ai.isDead)
 			continue;
 		var distance:float = Vector3.Distance(ai.Position(), Position());
 		if (distance < closestDistance){
-			if (Position() == ai.Position())
-				return ai;
-			var offset:Quaternion = Quaternion.LookRotation(Position() - ai.Position());
-			if (Mathf.Abs(Quaternion.Angle(transform.rotation, offset)) < 90){
+			if (AffectedByAbility(Ability.BaseAttack, ai)){
 				closestDistance = distance;
 				closestAI = ai;
 			}
 		}
 	}
 	return closestAI;
+}
+
+private function TargetInBaseAttackRange():boolean{
+	if (!target)
+		return false;
+	return AffectedByAbility(Ability.BaseAttack, target);
 }
 
 private function AbilityVisible(i:int):boolean{
@@ -690,7 +758,7 @@ private function ResolveAbility(){
 			case Ability.Cleave:
 				break;
 			case Ability.Stomp:
-				ai.PushBack(10,0.4);
+				ai.PushBack(30,0.6);//30 meter in 0.6 seconds
 				break;
 		}		
 	}
@@ -757,7 +825,7 @@ private function DealDamageToTarget(ai:AIController){
 	var damageMultiplier:float = 1.0;
 
 	if (enraged){
-		damageMultiplier *= 1.2;
+		damageMultiplier *= 1.5;
 	}
 
 	if (avatar){
@@ -780,6 +848,11 @@ private function AddDamageTextOnTarget(ai:AIController, amount:float){
 ///////////////////////////
 
 private function SetState(newState:State){
+	if (levelFail){
+		// Skip All Animations when Level Fail
+		return;
+	}
+
 	if (newState == state)
 		return;
 	state = newState;
@@ -930,13 +1003,16 @@ private var mouseDownDistanceValue:float;
 
 private function UpdateInput () {
 	inputHorizontalValue = Input.GetAxis ("Horizontal");
-	inputVerticalValue = Input.GetAxis ("Vertical");	
+	inputVerticalValue = Input.GetAxis ("Vertical");
 
-	if (Input.GetKey(KeyCode.Mouse0)){
-		if (!levelStarted){
+	if (!levelStarted){
+		if (Input.anyKeyDown){
 			levelStarted = true;
 			LevelStart();
 		}
+	}
+
+	if (Input.GetKey(KeyCode.Mouse0)){
 		if (mouseDown == false){
 			initMouseDownPosition = Input.mousePosition;
 			initmouseDownCameraRotationY = mainCamera.transform.rotation.eulerAngles.y;

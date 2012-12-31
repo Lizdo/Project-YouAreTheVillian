@@ -2,24 +2,13 @@
 
 You play as a dungeon boss, prepare yourself for the challenge of the 25 adventurers!
 
-This is my first test entry for LD25… However it seems not possible to finish before the 2 day deadline now, too much distractions during the whole course. Will try to wrap up all the remaining features in the next week.
+First v0.1 build ready for playtesting. :)
 
-###Current Features:
+###Screenshot:
 
-- Camera & Control
-- Rough Enemy AI
-- Rough UI
-- Abilities
-
-###Missing Features:
-
-- Balancing
-- Ground Deco
-
+![Screenshot](https://raw.github.com/Lizdo/Project-YouAreTheVillian/master/Export/Screenshot.png)
 
 ###[Play the current build!](http://htmlpreview.github.com/?https://github.com/Lizdo/Project-YouAreTheVillian/blob/master/Export/Export.html)
-(Warning: Unfinished...)
-
 
 ------
 
@@ -57,3 +46,9 @@ This is my first test entry for LD25… However it seems not possible to finish 
 - Ability Tooltip
 - AI Tweaks
 - UI Tweaks
+
+#### Update (12/31)
+
+- Grass Decoration
+- Death Animation
+- Balancing/Tweaking
