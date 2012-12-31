@@ -69,23 +69,23 @@ function SlowUpdate(){
 public function Setup(){
 	switch (aiClass){
 		case AIClass.Tank:
-			maxHealth = 1000;
+			maxHealth = 2000;
 			dps = 15;
-			speed = 10;
+			speed = 20;
 			color = TankColor;
 			attackRadius = 10;
 			break;
 		case AIClass.DPS:
 			maxHealth = 500;
-			dps = 30;
-			speed = 12;
+			dps = 50;
+			speed = 24;
 			color = DPSColor;
 			attackRadius = 20;
 			break;
 		case AIClass.Healer:
 			maxHealth = 800;
-			dps = 20;
-			speed = 10;
+			dps = 5;
+			speed = 20;
 			color = HealerColor;
 			attackRadius = 8;
 			break;
@@ -202,9 +202,10 @@ private function StopAvoidingPlayer(){
 }
 
 private function NeedAvoidance():boolean{
-	// Preliminary Checks
-	if (target != player)
+	// Tank does not need to avoid player
+	if (aiClass == AIClass.Tank)
 		return false;
+	// Preliminary Checks
 	if (player.state != State.UsingAbility)
 		return false;
 	if (player.currentAbility <= 0)
@@ -418,22 +419,24 @@ private function UpdateMovementTargetSlow(){
 
 
 private function UpdateMovementTargetAvoidPlayer(){
+	// 12/12/31, Always move away from the player. It's more understandable this way.
+
 	// Move To the other side
-	var positionOnRadius:Vector3 = FarthestPositionOnRadius();
-	targetPosition = positionOnRadius;
+	// var positionOnRadius:Vector3 = FarthestPositionOnRadius();
+	// targetPosition = positionOnRadius;
 
-	if (!TargetPositionOccupied())
-		return;
+	// if (!TargetPositionOccupied())
+	// 	return;
 
-	// Check Adjucent 8 Slots...
-	for (var i:int = 0; i < 8; i++){
-		for (var j:int = 1; j < 6; j++){
-			var offset:Vector3 = AdjucentOffsets[i];
-			targetPosition = positionOnRadius + offset * j * 0.8;
-			if (TargetPositionIsValid() && !TargetPositionOccupied())
-				return;
-		}
-	}	
+	// // Check Adjucent 8 Slots...
+	// for (var i:int = 0; i < 8; i++){
+	// 	for (var j:int = 1; j < 6; j++){
+	// 		var offset:Vector3 = AdjucentOffsets[i];
+	// 		targetPosition = positionOnRadius + offset * j * 0.8;
+	// 		if (TargetPositionIsValid() && !TargetPositionOccupied())
+	// 			return;
+	// 	}
+	// }	
 
 	// Move Out
 	targetPosition = FarAwayFromPlayer();

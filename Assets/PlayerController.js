@@ -125,8 +125,14 @@ function Update () {
 		return;
 
 	if (HealthRatio() < EnrageHealthRatio && !enraged){
+		// Coroutine to enter rage mode, only fire once
 		enraged = true;
 		Enrage();
+	}
+
+	if (enteringRageMode){
+		// Fog/Light/Color transition for entering rage mode
+		UpdateEnterRageMode();
 	}
 
 	UpdateInput();
@@ -144,12 +150,60 @@ private var EnrageFX:ParticleSystem;
 private var EnrageFXOffset:Vector3 = Vector3(0,10,10);
 
 private function Enrage(){
-	Renderer().material.color = EnragedColor;
+	enteringRageMode = true;
+	enteringRageModeTime = Time.time;
+
+	bodyColor = Renderer().material.color;
+
+	// Cache the original colors
+	frontLight = gameObject.Find("FrontLight").GetComponent(Light);
+	backLightLeft = gameObject.Find("BackLightLeft").GetComponent(Light);
+	backLightRight = gameObject.Find("BackLightRight").GetComponent(Light);
+
+	frontLightColor = frontLight.color;
+	backLightLeftColor = backLightLeft.color;
+	backLightRightColor = backLightRight.color;
+
+	fogColor = RenderSettings.fogColor;
 
 	EnrageFX = Instantiate(Resources.Load("Fire", ParticleSystem));
 	EnrageFX.transform.position = transform.position + transform.rotation * EnrageFXOffset;
 	EnrageFX.transform.parent = transform;
 
+	// Popup Rage Text
+	centerText.SetText("Rage Mode: damage & speed increased.");
+	centerText.FadeIn();
+
+	yield WaitForSeconds(enteringRageModeTransitionTime);
+	centerText.FadeOut();
+	enteringRageMode = false;
+
+}
+
+private var enteringRageMode:boolean;
+private var enteringRageModeTime:float;
+private var enteringRageModeTransitionTime:float = 3.0;
+
+private var bodyColor:Color;
+private var frontLightColor:Color;
+private var backLightLeftColor:Color;
+private var backLightRightColor:Color;
+private var fogColor:Color;
+
+private var frontLight:Light;
+private var backLightLeft:Light;
+private var backLightRight:Light;
+
+private function UpdateEnterRageMode(){
+	var ratio:float = (Time.time - enteringRageModeTime)/enteringRageModeTransitionTime;
+
+	Renderer().material.color = Color.Lerp(bodyColor, EnragedColor, ratio);
+
+	frontLight.color = Color.Lerp(frontLightColor, EnragedColor, ratio);
+	backLightLeft.color = Color.Lerp(backLightLeftColor, EnragedColor, ratio);
+	backLightRight.color = Color.Lerp(backLightRightColor, EnragedColor, ratio);
+
+	RenderSettings.fogColor = Color.Lerp(fogColor, EnragedColor, ratio);
 }
 
 private var levelComplete:boolean;
@@ -180,6 +234,11 @@ private function CheckVictoryCondition(){
 ///////////////////////////
 
 public function AffactedByCurrentAbility(ai:AIController):boolean{
+	// Not dealing damage, not affected by ability
+	if (AbilityDamage[currentAbility] == 0){
+		return false;
+	}
+
 	if (Vector3.Distance(ai.Position(), Position()) > AbilityRange[currentAbility])
 		return false;
 
@@ -479,11 +538,14 @@ enum Ability{
 
 private var abilityTargetLocation:Vector3;
 
+
+// Tweakables
+
 private var AbilityCastTime:float[] = [1,1.5,1.5,3];
 private var abilityTransitionTime:float[] = [0.5, 0.5, 0.5, 0.5];
 private var AbilityCooldownTime:float[] = [0f,10f,15f,60f];
 private var AbilityLastUsed:float[] = [-100f,-100f,-100f,-100f];
-private var AbilityDamage:float[] = [50f, 70f, 150f, 0f];
+private var AbilityDamage:float[] = [100f, 140f, 300f, 0f];
 private var AbilityRange:float[] = [30f, 20f, 20f, 20f];
 private var AbilityAngle:float[] = [180f, 120f, 0f, 0f];
 private var AbilityTargetNumber:int[] = [1, 100, 100, 0];
@@ -687,7 +749,7 @@ private function DealDamageToTarget(ai:AIController){
 		damageMultiplier *= 1.2;
 	}
 
-	var amount:float = AbilityDamage[currentAbility] * damageMultiplier;
+	var amount:float = Mathf.Round(AbilityDamage[currentAbility] * damageMultiplier);
 	print("Damaging" + ai.ToString());
 	ai.TakeDamage(amount);
 	AddDamageTextOnTarget(ai, amount);
@@ -889,7 +951,7 @@ private function UpdateInput () {
 private var speed:float = 30;
 private var reverseSpeed:float = 5;	// Move backward is slower
 
-private var rotateSpeed:float = 40;
+private var rotateSpeed:float = 60;
 
 private function UpdateMovement () {
 	if (mouseDown)
