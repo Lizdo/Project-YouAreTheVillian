@@ -71,12 +71,15 @@ function Start () {
 	barFull.wrapMode = TextureWrapMode.Repeat;
 }
 
+private var levelStarted:boolean;
 private var levelInitComplete:boolean;
 
 function LevelInit(){
-	centerText.SetText("G A M E    S T A R T");
+	centerText.SetText("Click to Start the Game");
 	centerText.FadeIn();
-	yield WaitForSeconds(3);
+}
+
+function LevelStart(){
 	centerText.FadeOut();
 	yield WaitForSeconds(1);
 
@@ -91,15 +94,15 @@ function LevelInit(){
 	guiFading = false;
 
 
-	yield WaitForSeconds(3);
-	centerText.SetText("Kill All Enemys.");
+	yield WaitForSeconds(1);
+	centerText.SetText("Kill All Enemys");
 	centerText.FadeIn();
 	yield WaitForSeconds(3);
 	centerText.FadeOut();
 }
 
 function LevelComplete(){
-	centerText.SetText("V I C T O R Y");
+	centerText.SetText("Victory");
 	centerText.FadeIn();
 	yield WaitForSeconds(3);
 	centerText.FadeOut();
@@ -108,7 +111,7 @@ function LevelComplete(){
 }
 
 function LevelFailed(){
-	centerText.SetText("G A M E    O V E R");
+	centerText.SetText("Game Over");
 	//TODO: Play Fail Anim...
 	centerText.FadeIn();
 	yield WaitForSeconds(3);
@@ -554,7 +557,7 @@ private var AbilityCastTime:float[] = [1,1.5,1.5,3];
 private var abilityTransitionTime:float[] = [0.5, 0.5, 0.5, 0.5];
 private var AbilityCooldownTime:float[] = [0f,10f,15f,60f];
 private var AbilityLastUsed:float[] = [-100f,-100f,-100f,-100f];
-private var AbilityDamage:float[] = [100f, 140f, 300f, 0f];
+private var AbilityDamage:float[] = [100f, 80f, 110f, 0f];
 private var AbilityRange:float[] = [30f, 20f, 20f, 20f];
 private var AbilityAngle:float[] = [180f, 120f, 0f, 0f];
 private var AbilityTargetNumber:int[] = [1, 100, 100, 0];
@@ -755,7 +758,7 @@ private function DealDamageToTarget(ai:AIController){
 	}
 
 	if (avatar){
-		damageMultiplier *= 1.2;
+		damageMultiplier *= 1;
 	}
 
 	var amount:float = Mathf.Round(AbilityDamage[currentAbility] * damageMultiplier);
@@ -927,6 +930,10 @@ private function UpdateInput () {
 	inputVerticalValue = Input.GetAxis ("Vertical");	
 
 	if (Input.GetKey(KeyCode.Mouse0)){
+		if (!levelStarted){
+			levelStarted = true;
+			LevelStart();
+		}
 		if (mouseDown == false){
 			initMouseDownPosition = Input.mousePosition;
 			initmouseDownCameraRotationY = mainCamera.transform.rotation.eulerAngles.y;
