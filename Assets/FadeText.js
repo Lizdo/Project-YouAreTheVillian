@@ -29,14 +29,16 @@ private var fadingOut:boolean;
 private var fadeStartTime:float;
 
 function FadeIn(){
-	guiText.material.color.a = 0;
+	//guiText.material.color.a = 0;
 	fadingIn = true;
+	fadingOut = false;
 	fadeStartTime = Time.time;
 }
 
 function FadeOut(){
-	guiText.material.color.a = 1;
+	//guiText.material.color.a = 1;
 	fadingOut = true;
+	fadingIn = false;
 	fadeStartTime = Time.time;
 }
 

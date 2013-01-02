@@ -15,12 +15,13 @@ private var dps:float;
 private var speed:float;
 public var color:Color;
 private var attackRadius:float;
+private var minAttackRadius:float;
 public var isDead:boolean;
 
 public var updateID:int;
 private static var currentID:int;
 public static var totalID:int;
-private var frameSlice:int = 3;
+private var frameSlice:int = 10;
 
 private var player:PlayerController;
 
@@ -73,21 +74,24 @@ public function Setup(){
 			dps = 15;
 			speed = 24;
 			color = TankColor;
-			attackRadius = 10;
+			attackRadius = 15;
+			minAttackRadius = 10;
 			break;
 		case AIClass.DPS:
 			maxHealth = 300;
 			dps = 50;
 			speed = 23;
 			color = DPSColor;
-			attackRadius = 20;
+			attackRadius = 22;
+			minAttackRadius = 15;
 			break;
 		case AIClass.Healer:
 			maxHealth = 500;
 			dps = 5;
 			speed = 20;
 			color = HealerColor;
-			attackRadius = 20;
+			attackRadius = 30;
+			minAttackRadius = 1;
 			break;
 	}
 	Renderer().material.color = color;
@@ -376,7 +380,7 @@ private function UpdateMovementTargetSlow(){
 		return;
 	}
 
-	if (TargetInRange() && !TargetTooClose())
+	if (TargetInRange())
 		return;
 
 	// Try to find an un-occupied target position here
@@ -418,29 +422,14 @@ private function UpdateMovementTargetSlow(){
 	targetPosition = Vector3.zero;
 }
 
-
 private function UpdateMovementTargetAvoidPlayer(){
-	// 12/12/31, Always move away from the player. It's more understandable this way.
-
-	// Move To the other side
-	// var positionOnRadius:Vector3 = FarthestPositionOnRadius();
-	// targetPosition = positionOnRadius;
-
-	// if (!TargetPositionOccupied())
-	// 	return;
-
-	// // Check Adjucent 8 Slots...
-	// for (var i:int = 0; i < 8; i++){
-	// 	for (var j:int = 1; j < 6; j++){
-	// 		var offset:Vector3 = AdjucentOffsets[i];
-	// 		targetPosition = positionOnRadius + offset * j * 0.8;
-	// 		if (TargetPositionIsValid() && !TargetPositionOccupied())
-	// 			return;
-	// 	}
-	// }	
-
-	// Move Out
 	targetPosition = FarAwayFromPlayer();
+}
+
+private function FarAwayFromTarget():Vector3{
+	var distance:float = Vector3.Distance(target.Position(), Position());
+	var ratio:float = -100;
+	return SnapToGround(Vector3.MoveTowards(Position(), target.Position(), ratio));
 }
 
 private function FarAwayFromPlayer():Vector3{
@@ -451,15 +440,19 @@ private function FarAwayFromPlayer():Vector3{
 
 
 private function FarthestPositionOnRadius():Vector3{
-	var distance:float = Vector3.Distance(target.Position(), Position());
+	var offset:Vector3 = target.Position() - Position();
+	var distance = offset.magnitude;
 	var ratio:float = 1 + targetInRangeBuffer * attackRadius / distance;
-	return SnapToGround(Vector3.Lerp(Position(), target.Position(), ratio));
+
+	return SnapToGround(Position() + ratio * offset);
 }
 
 private function ClosestPositionOnRadius():Vector3{
-	var distance:float = Vector3.Distance(target.Position(), Position());
+	var offset:Vector3 = target.Position() - Position();
+	var distance = offset.magnitude;
 	var ratio:float = 1 - targetInRangeBuffer * attackRadius / distance;
-	return SnapToGround(Vector3.Lerp(Position(), target.Position(), ratio));
+
+	return SnapToGround(Position() + ratio * offset);
 }
 
 private function TargetPositionOccupied():boolean{
@@ -487,7 +480,7 @@ private function PositionIsValid(){
 		}
 	}
 
-	if (distance <= attackRadius && distance > attackRadius * targetTooCloseRatio)
+	if (distance <= attackRadius && distance >= minAttackRadius)
 		return true;
 	return false;	
 }
@@ -504,22 +497,21 @@ private function TargetPositionIsValid(){
 		}
 	}
 
-	if (distance <= attackRadius && distance > attackRadius * targetTooCloseRatio)
+	if (distance <= attackRadius && distance >= minAttackRadius)
 		return true;
 	return false;
 }
 
 private var targetInRangeBuffer:float = 0.8;
-private var targetTooCloseRatio:float = 0.4;
 
 private function TargetInRange(){
 	var distance:float = Vector3.Distance(Position(), target.Position());
-	return distance <= attackRadius;
+	return distance >= minAttackRadius && distance <= attackRadius;
 }
 
 private function TargetTooClose(){
 	var distance:float = Vector3.Distance(Position(), target.Position());
-	return distance < attackRadius * targetTooCloseRatio;
+	return distance < minAttackRadius;
 }
 
 private var targetRotation:float;
@@ -582,7 +574,7 @@ private function MoveTowardTarget(){
 
 
 	if (transform.position.y < -10 || transform.position.y > 10){
-		//Debug.LogError("Movement Error");
+		Debug.LogError("Movement Error: Too high or too low...");
 	}
 
 }

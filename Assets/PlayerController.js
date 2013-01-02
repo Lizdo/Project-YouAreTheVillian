@@ -87,34 +87,25 @@ private var phaseThreeHint:String = "Try to save some cooldowns until you enter 
 function PhaseTwoStart(){
 	hint.text = phaseTwoHint;
 	yield WaitForSeconds(1);
-	hint.text = "";
-	yield WaitForSeconds(0.1);	
-	hint.text = phaseTwoHint;
-	yield WaitForSeconds(0.1);
-	hint.text = "";
-	yield WaitForSeconds(0.1);	
-	hint.text = phaseTwoHint;
-	yield WaitForSeconds(0.1);
-	hint.text = "";
-	yield WaitForSeconds(0.1);	
-	hint.text = phaseTwoHint;	
+	BlinkHintText(phaseTwoHint);
 }
 
 function PhaseThreeStart(){
 	hint.text = phaseThreeHint;
 	yield WaitForSeconds(1);
-	hint.text = "";
-	yield WaitForSeconds(0.1);	
-	hint.text = phaseThreeHint;
-	yield WaitForSeconds(0.1);	
-	hint.text = "";
-	yield WaitForSeconds(0.1);	
-	hint.text = phaseThreeHint;
-	yield WaitForSeconds(0.1);	
-	hint.text = "";
-	yield WaitForSeconds(0.1);	
-	hint.text = phaseThreeHint;
-	yield WaitForSeconds(0.1);			
+	BlinkHintText(phaseThreeHint);
+}
+
+private var blinkDelay:float = 0.1;
+private var blinks:float = 3;
+
+function BlinkHintText(s:String){
+	for (var i:int = 0; i < blinks; i++){
+		hint.text = "";
+		yield WaitForSeconds(blinkDelay);
+		hint.text = s;
+		yield WaitForSeconds(blinkDelay);	
+	}
 }
 
 function LevelStart(){
@@ -166,7 +157,7 @@ private var EnrageHealthRatio:float = 0.25;
 
 
 function Update () {
-	if (levelFail)
+	if (levelFailed)
 		return;
 
 	if (HealthRatio() < 0.75 && !phaseTwoStarted){
@@ -262,14 +253,14 @@ private function UpdateEnterRageMode(){
 }
 
 private var levelComplete:boolean;
-private var levelFail:boolean;
+private var levelFailed:boolean;
 
 private function CheckVictoryCondition(){
-	if (levelComplete || levelFail)
+	if (levelComplete || levelFailed)
 		return;
 
-	if (health <= 0){
-		levelFail = true;
+	if (health <= 0 && !levelFailed){
+		levelFailed = true;
 		LevelFailed();
 	}
 
@@ -851,7 +842,7 @@ private function AddDamageTextOnTarget(ai:AIController, amount:float){
 ///////////////////////////
 
 private function SetState(newState:State){
-	if (levelFail){
+	if (levelFailed){
 		// Skip All Animations when Level Fail
 		return;
 	}
