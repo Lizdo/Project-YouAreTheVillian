@@ -87,10 +87,10 @@ public function Setup(){
 			break;
 		case AIClass.Healer:
 			maxHealth = 500;
-			dps = 5;
+			dps = 4;
 			speed = 20;
 			color = HealerColor;
-			attackRadius = 30;
+			attackRadius = 20;
 			minAttackRadius = 1;
 			break;
 	}
@@ -144,6 +144,9 @@ public function PushBack(distance:float, time:float){
 private var target:BaseController;
 private var avoidingCooldown:boolean;
 
+private static var lastTaunted:float;
+private static var minimumTauntDelay:float = 10.0;
+
 private function UpdateAI(){
 	if (health <= 0){
 		isDead = true;
@@ -179,6 +182,9 @@ private function UpdateAI(){
 	if (!avoidingPlayer && !attackInProgress && PositionIsValid()){
 		if (aiClass == AIClass.DPS && Random.value < 0.01){
 			AOEAttack();
+		}else if (aiClass == AIClass.Tank && Random.value < 0.03 && !player.taunted && (Time.time - lastTaunted > minimumTauntDelay)){
+			lastTaunted = Time.time;
+			Taunt();
 		}else{
 			Attack();
 		}
@@ -252,6 +258,18 @@ private function AOEAttack(){
 	attackInProgress = false;	
 }
 
+
+private function Taunt(){
+	attackInProgress = true;
+	yield WaitForAnimation("Attack", 0.6, true);
+	player.TauntedBy(this);
+
+	var tauntAbility:String = TauntAbilities[Mathf.Floor(Random.value * TauntAbilities.length)];
+	PopupText(tauntAbility);
+	yield WaitForSeconds(Random.value * 0.5 + 0.1);
+	attackInProgress = false;
+}
+
 private function PopupText(text:String){
 	var v:Vector3 = Camera.main.WorldToViewportPoint(Position());
 	SpawnFloatingText(text, v.x, v.y, AIDamageTextColor);
@@ -283,7 +301,7 @@ private function PlayerInAOERadius():boolean{
 }
 
 private function DealAOEDamage(){
-	var amount:int = Mathf.Round(dps * AOEDamageMultiplier * (Random.Range(1.0, 1.25)));
+	var amount:int = Mathf.Round(dps * AOEDamageMultiplier * (Random.Range(1.0, 1.25)) * CombatEfficiency());
 	player.TakeDamage(amount);
 	//TODO: Play hurt feedback
 	print("AOEDamage To Player");
@@ -297,21 +315,44 @@ private function DealAOEDamage(){
 private function Die(){
 	color = Color.gray;
 	Renderer().material.color = color;
-	//TODO: Add some timed event
+	switch (aiClass){
+		case AIClass.Tank:
+			DeadTankCount++;
+			break;
+		case AIClass.DPS:
+			DeadDPSCount++;
+			break;
+		case AIClass.Healer:
+			DeadHealerCount++;
+			break;
+	}
 }
 
 private function DealDamage(){
+	// Reduce efficiency when more AI is Dead
+
+
 	if (target == player){
-		player.TakeDamage(dps);
+		player.TakeDamage(dps * CombatEfficiency());
 		if (aiClass == AIClass.DPS){
 			player.AddCombatLog(DPSAbilities[Mathf.Floor(Random.value * DPSAbilities.length)]);
 		}else if (aiClass == AIClass.Tank){
 			player.AddCombatLog(TankAbilities[Mathf.Floor(Random.value * TankAbilities.length)]);
 		}
 	}else{
-		target.Heal(dps);
+		target.Heal(dps * CombatEfficiency());
 		player.AddCombatLog(HealerAbilities[Mathf.Floor(Random.value * HealerAbilities.length)]);
 	}
+}
+
+private function CombatEfficiency():float{
+	var efficiency:float = 1;
+
+	efficiency = Mathf.Lerp(efficiency, 0.5 * efficiency,DeadTankCount/TankCount);
+	efficiency = Mathf.Lerp(efficiency, 0.5 * efficiency,DeadDPSCount/DPSCount);
+	efficiency = Mathf.Lerp(efficiency, 0.6 * efficiency,DeadHealerCount/HealerCount);
+
+	return efficiency;
 }
 
 private function UpdateHealerAI(){
@@ -335,6 +376,14 @@ private function RandomAI():AIController{
 	return ai;
 }
 
+
+public static var TankCount:int;
+public static var HealerCount:int;
+public static var DPSCount:int;
+
+private static var DeadTankCount:int;
+private static var DeadHealerCount:int;
+private static var DeadDPSCount:int;
 
 private function AIWithLowestHP(){
 	var lowestHPPercentage:float = 100000;
@@ -582,13 +631,17 @@ private function MoveTowardTarget(){
 private var TankAbilities:String[] = [
 	"Thrash",
 	"Maul",
-	"Growl",
 	"Blood Strike",
 	"Death Coil",
 	"Parry",
 	"Shield Wall",
-	"Pummel",
-	"Provoke"
+	"Pummel"
+];
+
+private var TauntAbilities:String[] = [
+	"Provoke",
+	"Growl",
+	"Death Grip"
 ];
 
 private var DPSAbilities:String[] = [

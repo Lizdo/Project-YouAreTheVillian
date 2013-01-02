@@ -141,7 +141,7 @@ function LevelFailed(){
 	// Stop all other animations/attacks...etc, because it's game over here.
 	StopCoroutine("ProcessAbility");
 	StopCoroutine("Enrage");
-	
+
 	Renderer().material.color = Color.gray;
 	PlayAnimation("Die");
 	yield WaitForSeconds(1);
@@ -171,15 +171,26 @@ function Update () {
 		PhaseThreeStart();
 	}	
 
-	if (HealthRatio() < EnrageHealthRatio && !enraged){
+	if (!enraged && HealthRatio() < EnrageHealthRatio){
 		// Coroutine to enter rage mode, only fire once
-		enraged = true;
+		StartCoroutine("Enrage");
+	}
+
+	if (!enraged && Time.time > 120){
+		// Also Enrage After 2 Minutes
 		StartCoroutine("Enrage");
 	}
 
 	if (enteringRageMode){
 		// Fog/Light/Color transition for entering rage mode
 		UpdateEnterRageMode();
+	}
+
+	if (taunted){
+		StopCoroutine("ProcessAbility");
+		UpdateTaunt();
+		UpdateCamera();
+		return;
 	}
 
 	UpdateInput();
@@ -197,6 +208,10 @@ private var EnrageFX:ParticleSystem;
 private var EnrageFXOffset:Vector3 = Vector3(0,10,10);
 
 private function Enrage(){
+	if (enraged)
+		return;
+
+	enraged = true;
 	enteringRageMode = true;
 	enteringRageModeTime = Time.time;
 
@@ -457,12 +472,17 @@ function OnGUI () {
 		for (i = 0; i < AIs.length; i++){
 			var ai:AIController = AIs[i];
 			if (ai.isDead){
-				continue;
+				SetGuiColor(DeadColor);
+				bar = Rect(aiHPBarPadding, aiHPBarPadding+lineNumber*(aiHPBarHeight+aiHPBarPadding),
+				    aiHPBarWidth - aiHPBarPadding * 2,
+				    aiHPBarHeight);
+			}else{	
+				SetGuiColor(ai.color);
+				bar = Rect(aiHPBarPadding, aiHPBarPadding+lineNumber*(aiHPBarHeight+aiHPBarPadding),
+				    ai.health/ai.maxHealth * (aiHPBarWidth - aiHPBarPadding * 2),
+				    aiHPBarHeight);
 			}
-			SetGuiColor(ai.color);
-		    bar = Rect(aiHPBarPadding, aiHPBarPadding+lineNumber*(aiHPBarHeight+aiHPBarPadding),
-		        ai.health/ai.maxHealth * (aiHPBarWidth - aiHPBarPadding * 2),
-		        aiHPBarHeight);
+
 		    GUI.DrawTexture(bar, barFull);		    
 
 		    // Add a square for current target
@@ -538,9 +558,6 @@ function OnGUI () {
 		SetGuiColor(MinorTextColor);
 		GUI.Label(tooltipRect, GUI.tooltip);
 	}
-
-
-
 
 }
 
@@ -858,6 +875,11 @@ private function AddDamageTextOnTarget(ai:AIController, amount:float){
 	SpawnFloatingText(amount.ToString(), v.x, v.y, PlayerDamageTextColor);
 }
 
+private function PopupText(text:String){
+	var v:Vector3 = Camera.main.WorldToViewportPoint(Position());
+	SpawnFloatingText(text, v.x, v.y, PlayerDamageTextColor);
+}
+
 ///////////////////////////
 // Animation
 ///////////////////////////
@@ -968,6 +990,10 @@ function SpawnAI(){
 	var i:int;
 	AIs = new Array();
 
+	AIController.TankCount = AIAmount[0];
+	AIController.DPSCount = AIAmount[1];
+	AIController.HealerCount = AIAmount[2];
+
 	for (i = AIAmount[0] - 1; i >= 0; i--) {
 		ai = Instantiate(prefab).GetComponent(AIController);
 		ai.aiClass = AIClass.Tank;
@@ -1051,6 +1077,50 @@ private function UpdateInput () {
 	if (Input.GetKey(KeyCode.Alpha4) || Input.GetKey(KeyCode.Keypad4)){
 		UseAbility(3);
 	}
+}
+
+///////////////////////////
+// Taunt
+///////////////////////////
+
+public var taunted:boolean;
+private var taunter:AIController;
+
+private var tauntDuration:float = 1.0;
+private var tauntRotateTime:float = 0.5;
+private var tauntStartTime:float;
+private var tauntStartRotation:Quaternion;
+
+private function UpdateTaunt(){
+	RotateTowardsTaunter();
+
+	if ((Time.time - tauntStartTime) > tauntRotateTime){
+		SetState(State.Idle);
+	}
+
+	if ((Time.time - tauntStartTime) > tauntDuration){
+		taunted = false;
+	}
+}
+
+public function TauntedBy(ai:AIController){
+	// 50% Resist
+	if (avatar || enraged || Random.value > 0.5){
+		//Resisted!
+		yield WaitForSeconds(0.2);
+		PopupText("Resisted");
+		return;
+	}
+	taunted = true;
+	taunter = ai;
+	tauntStartRotation = transform.rotation;
+	tauntStartTime = Time.time;
+	SetState(State.MovingRight);
+}
+
+private function RotateTowardsTaunter(){
+	var to:Quaternion = Quaternion.LookRotation(transform.position - taunter.transform.position);
+	transform.rotation = Quaternion.Lerp(tauntStartRotation, to, (Time.time - tauntStartTime) /tauntRotateTime);
 }
 
 

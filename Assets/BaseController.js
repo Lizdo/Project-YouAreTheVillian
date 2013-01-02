@@ -112,6 +112,7 @@ public static var AIDamageTextColor:Color = ColorWithHex(0x741909);
 public static var TankColor:Color = ColorWithHex(0xa33625);
 public static var DPSColor:Color = ColorWithHex(0x454674);
 public static var HealerColor:Color = ColorWithHex(0x5f8757);
+public static var DeadColor:Color = Color.gray;
 
 public static var EnragedColor:Color = ColorWithHex(0xa33625);
 
