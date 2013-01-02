@@ -244,6 +244,7 @@ private function Attack(){
 private function AOEAttack(){
 	attackInProgress = true;
 	yield WaitForAnimation("Attack", 0.6, true);
+	AOEAbilityName = AOEAbilities[Mathf.Floor(Random.value * AOEAbilities.length)];
 
 	SpawnAOERing();
 	yield WaitForSeconds(AOEDuration);
@@ -253,7 +254,7 @@ private function AOEAttack(){
 	}
 
 	AOERing.FadeOut();
-
+	AOEText.FadeOut();
 	yield WaitForSeconds(Random.value * 0.5 + 0.1);
 	attackInProgress = false;	
 }
@@ -281,6 +282,9 @@ private var AOEDuration:float = 3;
 private var AOEDamageMultiplier:float = 30.0;
 private var AOERing:Ring;
 
+private var AOEText:FixedText;
+private var AOEAbilityName:String;
+
 private var AOERingOffset:float = 5;
 
 
@@ -291,6 +295,12 @@ private function SpawnAOERing(){
 
 	AOERing.SetColor(AIDamageTextColor);
 	AOERing.SetPositionAndRadius(AOETargetPosition, AOERadius);
+
+	AOEText = Instantiate(Resources.Load("FixedText", GameObject)).GetComponent(FixedText);
+
+	AOEText.guiText.text = AOEAbilityName;
+	AOEText.SetColor(AIDamageTextColor);
+	AOEText.SetPosition(AOETargetPosition);
 }
 
 private function PlayerInAOERadius():boolean{
@@ -306,10 +316,8 @@ private function DealAOEDamage(){
 	//TODO: Play hurt feedback
 	print("AOEDamage To Player");
 
-	var aoeAbilityText:String = AOEAbilities[Mathf.Floor(Random.value * AOEAbilities.length)];
-
-	player.AddCombatLog(aoeAbilityText);
-	PopupText(aoeAbilityText + ": " + amount.ToString());
+	player.AddCombatLog(AOEAbilityName);
+	PopupText(AOEAbilityName + ": " + amount.ToString());
 }
 
 private function Die(){

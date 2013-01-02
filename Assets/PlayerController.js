@@ -67,13 +67,14 @@ function Start () {
 	combatLog.text = "";
 
 	centerText = gameObject.Find("CenterText").GetComponent(FadeText);
-	LevelInit();
 
 	barEmpty = Resources.Load("LightBackground", Texture);
 	barFull = Resources.Load("DarkBackground", Texture);
 
 	barEmpty.wrapMode = TextureWrapMode.Repeat;
 	barFull.wrapMode = TextureWrapMode.Repeat;
+
+	LevelInit();
 }
 
 private var introFadeComplete:boolean;
@@ -102,6 +103,7 @@ function PhaseTwoStart(){
 	hint.text = phaseTwoHint;
 	yield WaitForSeconds(1);
 	BlinkHintText(phaseTwoHint);
+	centerText.SetColor(PrimaryTextColor);
 	centerText.SetText("HP < 75%, Stomp Ability Unlocked");
 	centerText.FadeIn();
 	yield WaitForSeconds(3);
@@ -112,6 +114,7 @@ function PhaseThreeStart(){
 	hint.text = phaseThreeHint;
 	yield WaitForSeconds(1);
 	BlinkHintText(phaseThreeHint);
+	centerText.SetColor(PrimaryTextColor);
 	centerText.SetText("HP < 50%, Avatar Ability Unlocked");
 	centerText.FadeIn();
 	yield WaitForSeconds(3);
@@ -130,6 +133,8 @@ function BlinkHintText(s:String){
 	}
 }
 
+private var levelStartTime:float;
+
 function LevelStart(){
 	centerText.SetText("");
 	introText.FadeOut();
@@ -137,6 +142,7 @@ function LevelStart(){
 
 	levelInitComplete = true;
 	guiFadeStartTime = Time.time;
+	levelStartTime = Time.time;
 	guiFading = true;
 
 	SpawnAI();
@@ -154,10 +160,10 @@ function LevelStart(){
 }
 
 function LevelComplete(){
-	centerText.SetText("Victory");
-	centerText.FadeIn();
+	introText.SetText("Victory");
+	introText.FadeIn();
 	yield WaitForSeconds(3);
-	centerText.FadeOut();
+	introText.FadeOut();
 	yield WaitForSeconds(3);
 	Application.LoadLevel(0);
 }
@@ -170,11 +176,11 @@ function LevelFailed(){
 	Renderer().material.color = Color.gray;
 	PlayAnimation("Die");
 	yield WaitForSeconds(1);
-	centerText.SetText("Game Over");
+	introText.SetText("Game Over");
 	//TODO: Play Fail Anim...
-	centerText.FadeIn();
+	introText.FadeIn();
 	yield WaitForSeconds(10);
-	centerText.FadeOut();
+	introText.FadeOut();
 	yield WaitForSeconds(3);
 	Application.LoadLevel(0);
 }
@@ -201,7 +207,7 @@ function Update () {
 		StartCoroutine("Enrage");
 	}
 
-	if (!enraged && Time.time > 120){
+	if (!enraged && (Time.time - levelStartTime) > 180){
 		// Also Enrage After 2 Minutes
 		StartCoroutine("Enrage");
 	}
@@ -464,7 +470,7 @@ function OnGUI () {
 
 	    SetGuiColor(SecondaryTextColor);
 
-	    if (HealthRatio() < 0.5 && HealthRatio() > 0.25){
+	    if (HealthRatio() < 0.5 && HealthRatio() > 0.25 && !enraged){
 		    ratio = 0.25;
 		    position = healthBarPadding + ratio * (healthBarWidth - healthBarPadding * 2);
 		    GUI.Label(Rect(position,healthBarHeight,healthBarTextWidth,healthBarTextHeight), "Rage");
@@ -650,7 +656,7 @@ private var AbilityCooldownTime:float[] = [0f,10f,15f,60f];
 private var AbilityLastUsed:float[] = [-100f,-100f,-100f,-100f];
 private var AbilityDamage:float[] = [100f, 60f, 90f, 0f];
 private var AbilityRange:float[] = [30f, 20f, 20f, 20f];
-private var AbilityAngle:float[] = [120f, 120f, 0f, 0f];
+private var AbilityAngle:float[] = [60f, 120f, 0f, 0f];
 private var AbilityTargetNumber:int[] = [1, 100, 100, 0];
 private var AbilityAdditionalInfo:String[] = [
 	"Basic attack, nothing fancy.",
@@ -1130,8 +1136,8 @@ private function UpdateTaunt(){
 }
 
 public function TauntedBy(ai:AIController){
-	// 50% Resist
-	if (avatar || enraged || Random.value > 0.5){
+	// 25% Resist
+	if (avatar || enraged || Random.value > 0.75){
 		//Resisted!
 		yield WaitForSeconds(0.2);
 		PopupText("Resisted");

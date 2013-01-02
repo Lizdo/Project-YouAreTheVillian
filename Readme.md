@@ -2,7 +2,7 @@
 
 You play as a dungeon boss, prepare yourself for the challenge of the 25 adventurers!
 
-First v0.1 build ready for playtesting. :)
+Lots of feedbacks from the first playtest. V0.2 Updated and ready for testing. :)
 
 ###Screenshot:
 
@@ -52,3 +52,12 @@ First v0.1 build ready for playtesting. :)
 - Grass Decoration
 - Death Animation
 - Balancing/Tweaking
+
+#### Update (1/2)
+
+- Playtest Feedbacks
+    - Add AI Tank Taunt Ability
+    - Balancing/Tweaking
+    - Prioritize Low HP Target
+    - Intro Screen
+    - AI Will Try to Keep Distance from Player

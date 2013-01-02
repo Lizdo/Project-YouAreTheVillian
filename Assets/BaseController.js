@@ -34,7 +34,6 @@ public function SpawnFloatingText(text:String, x: float, y: float, color:Color){
     t.color = color;
 }
 
-
 public function Position():Vector3{
 	return Vector3(transform.position.x, 0, transform.position.z);
 }
