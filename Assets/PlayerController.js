@@ -634,7 +634,7 @@ private function UpdateTarget(){
 		|| target.isDead
 		||(target.aiClass != AIClass.Tank && TankAlive())
 		||!TargetInBaseAttackRange()){
-		target = ClosestEnemiesInFront();
+		target = LowestHPEnemyInBaseAttackRange();
 	}
 
 	if (target && !target.isDead){
@@ -654,7 +654,7 @@ private function TankAlive():boolean{
 	return false;
 }
 
-private function ClosestEnemiesInFront():AIController{
+private function ClosestEnemyInBaseAttackRange():AIController{
 	var closestDistance:float = 30;
 	var closestAI:AIController;
 
@@ -665,6 +665,25 @@ private function ClosestEnemiesInFront():AIController{
 		if (distance < closestDistance){
 			if (AffectedByAbility(Ability.BaseAttack, ai)){
 				closestDistance = distance;
+				closestAI = ai;
+			}
+		}
+	}
+	return closestAI;
+}
+
+
+private function LowestHPEnemyInBaseAttackRange(){
+	var lowstHPRatio:float = 10;
+	var closestAI:AIController;
+
+	for (var ai:AIController in AIs){
+		if (!ai || ai.isDead)
+			continue;
+		var hpRatio:float = ai.HealthRatio();
+		if (hpRatio < lowstHPRatio){
+			if (AffectedByAbility(Ability.BaseAttack, ai)){
+				lowstHPRatio = hpRatio;
 				closestAI = ai;
 			}
 		}
