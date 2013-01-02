@@ -29,7 +29,10 @@ private var fadingOut:boolean;
 private var fadeStartTime:float;
 
 function FadeIn(){
-	//guiText.material.color.a = 0;
+	if (guiText.material.color.a == 1){
+		// Only reset when fully faded
+		guiText.material.color.a = 0;
+	}
 	fadingIn = true;
 	fadingOut = false;
 	fadeStartTime = Time.time;
@@ -44,4 +47,8 @@ function FadeOut(){
 
 function SetText(s:String){
 	guiText.text = s;
+}
+
+function SetColor(c:Color){
+	guiText.material.color = c;
 }

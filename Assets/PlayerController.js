@@ -29,12 +29,11 @@ private var sphere:GameObject;
 function Awake(){
 	//Application.targetFrameRate = 30;
 	mainCamera = Camera.main;
-	sphere = transform.Find("Sphere").gameObject;
-	sphere.renderer.enabled = false;
 	SpawnProps();
 }
 
 private var hint:GUIText;
+private var introText:FadeText;
 private var combatLog:GUIText;
 
 private var centerText:FadeText;
@@ -47,14 +46,20 @@ function Start () {
 	maxHealth = 120000;
 	health = maxHealth;
 	skin = Resources.Load("GUI", GUISkin);
+
+	sphere = transform.Find("Sphere").gameObject;
+	sphere.renderer.enabled = false;
+
 	var arrow:GameObject = Resources.Load("Arrow", GameObject);
 	targetArrow = Instantiate(arrow, Vector3.zero, Quaternion.identity).GetComponent(GUIText);
 	targetArrow.material.color = TargetArrorColor;
 	SetState(State.Idle);
 
 	hint = gameObject.Find("Hint").GetComponent(GUIText);
-	hint.text = "Use WSAD to move, Left Mouse Button to drag camera, 1/2/3/4 for Abilities.";
+	hint.text = "Use WSAD to move, 1/2/3/4 for Abilities. Left Mouse Button to drag camera.";
 	hint.material.color = SecondaryTextColor;
+
+	introText = gameObject.Find("IntroText").GetComponent(FadeText);
 
 	combatLog = gameObject.Find("CombatLog").GetComponent(GUIText);
 	combatLog.material.color = MinorTextColor;
@@ -71,6 +76,7 @@ function Start () {
 	barFull.wrapMode = TextureWrapMode.Repeat;
 }
 
+private var introFadeComplete:boolean;
 private var levelStarted:boolean;
 private var levelInitComplete:boolean;
 private var phaseTwoStarted:boolean;
@@ -78,7 +84,15 @@ private var phaseThreeStarted:boolean;
 
 function LevelInit(){
 	centerText.SetText("Press any Key to Start");
+	centerText.SetColor(SecondaryTextColor);
 	centerText.FadeIn();
+
+	introText.SetText("You are the ultimate dungeon master.\nDefeat the 25 invading minions!");
+	introText.SetColor(PrimaryTextColor);
+	introText.FadeIn();
+
+	yield WaitForSeconds(1.5);
+	introFadeComplete = true;
 }
 
 private var phaseTwoHint:String = "You'll be taunted by the enemy Tank (red dude) when he's in range.";
@@ -88,12 +102,20 @@ function PhaseTwoStart(){
 	hint.text = phaseTwoHint;
 	yield WaitForSeconds(1);
 	BlinkHintText(phaseTwoHint);
+	centerText.SetText("HP < 75%, Stomp Ability Unlocked");
+	centerText.FadeIn();
+	yield WaitForSeconds(3);
+	centerText.FadeOut();
 }
 
 function PhaseThreeStart(){
 	hint.text = phaseThreeHint;
 	yield WaitForSeconds(1);
 	BlinkHintText(phaseThreeHint);
+	centerText.SetText("HP < 50%, Avatar Ability Unlocked");
+	centerText.FadeIn();
+	yield WaitForSeconds(3);
+	centerText.FadeOut();	
 }
 
 private var blinkDelay:float = 0.1;
@@ -109,7 +131,8 @@ function BlinkHintText(s:String){
 }
 
 function LevelStart(){
-	centerText.FadeOut();
+	centerText.SetText("");
+	introText.FadeOut();
 	yield WaitForSeconds(1);
 
 	levelInitComplete = true;
@@ -122,7 +145,9 @@ function LevelStart(){
 	guiFading = false;
 
 	yield WaitForSeconds(1);
-	centerText.SetText("Kill All Enemys");
+
+	centerText.SetColor(PrimaryTextColor);
+	centerText.SetText("Use WSAD to Move, 1/2/3/4 for abilities");
 	centerText.FadeIn();
 	yield WaitForSeconds(3);
 	centerText.FadeOut();
@@ -233,6 +258,7 @@ private function Enrage(){
 	EnrageFX.transform.parent = transform;
 
 	// Popup Rage Text
+	centerText.SetColor(EnragedColor);
 	centerText.SetText("Rage Mode: damage & speed increased.");
 	centerText.FadeIn();
 
@@ -1046,7 +1072,7 @@ private function UpdateInput () {
 	inputHorizontalValue = Input.GetAxis ("Horizontal");
 	inputVerticalValue = Input.GetAxis ("Vertical");
 
-	if (!levelStarted){
+	if (introFadeComplete && !levelStarted){
 		if (Input.anyKeyDown){
 			levelStarted = true;
 			LevelStart();
