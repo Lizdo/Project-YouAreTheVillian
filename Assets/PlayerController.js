@@ -139,8 +139,9 @@ function LevelComplete(){
 
 function LevelFailed(){
 	// Stop all other animations/attacks...etc, because it's game over here.
-	StopAllCoroutines();
-
+	StopCoroutine("ProcessAbility");
+	StopCoroutine("Enrage");
+	
 	Renderer().material.color = Color.gray;
 	PlayAnimation("Die");
 	yield WaitForSeconds(1);
@@ -173,7 +174,7 @@ function Update () {
 	if (HealthRatio() < EnrageHealthRatio && !enraged){
 		// Coroutine to enter rage mode, only fire once
 		enraged = true;
-		Enrage();
+		StartCoroutine("Enrage");
 	}
 
 	if (enteringRageMode){
@@ -724,7 +725,8 @@ private function UseAbility(i:int){
 
 	if (target)
 		abilityTargetLocation = target.Position();
-	ProcessAbility();
+	
+	StartCoroutine("ProcessAbility");
 }
 
 private function ProcessAbility(){
