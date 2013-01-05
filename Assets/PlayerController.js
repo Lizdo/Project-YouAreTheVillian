@@ -506,7 +506,7 @@ function OnGUI () {
 			if (ai.isDead){
 				SetGuiColor(DeadColor);
 				bar = Rect(aiHPBarPadding, aiHPBarPadding+lineNumber*(aiHPBarHeight+aiHPBarPadding),
-				    aiHPBarWidth - aiHPBarPadding * 2,
+				    0.1 * (aiHPBarWidth - aiHPBarPadding * 2),
 				    aiHPBarHeight);
 			}else{	
 				SetGuiColor(ai.color);
@@ -813,7 +813,12 @@ private var AvatarDuration:float = 30;
 private var AvatarRadius:float = 20;
 
 private function ResolveAbility(){
-	for (var ai:AIController in EnemyInAbilityRange()){
+	var enemyInRange:Array= EnemyInAbilityRange();
+	if (enemyInRange.length == 0 && AbilityTargetNumber[currentAbility] != 0){
+		PopupText("Miss...");
+	}
+
+	for (var ai:AIController in enemyInRange){
 		DealDamageToTarget(ai);
 
 		switch (currentAbility){

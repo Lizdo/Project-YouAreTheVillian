@@ -147,6 +147,9 @@ private var avoidingCooldown:boolean;
 private static var lastTaunted:float;
 private static var minimumTauntDelay:float = 10.0;
 
+private var dpsAOEProbability:float = 0.006;
+private var tankTauntProbability:float = 0.05;
+
 private function UpdateAI(){
 	if (health <= 0){
 		isDead = true;
@@ -180,9 +183,9 @@ private function UpdateAI(){
 
 	// Base Attack
 	if (!avoidingPlayer && !attackInProgress && PositionIsValid()){
-		if (aiClass == AIClass.DPS && Random.value < 0.01){
+		if (aiClass == AIClass.DPS && Random.value < dpsAOEProbability){
 			AOEAttack();
-		}else if (aiClass == AIClass.Tank && Random.value < 0.03 && !player.taunted && (Time.time - lastTaunted > minimumTauntDelay)){
+		}else if (aiClass == AIClass.Tank && Random.value < tankTauntProbability && !player.taunted && (Time.time - lastTaunted > minimumTauntDelay)){
 			lastTaunted = Time.time;
 			Taunt();
 		}else{
