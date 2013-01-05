@@ -308,7 +308,7 @@ private function SpawnAOERing(){
 	var line:Line = Instantiate(Resources.Load("Line", GameObject)).GetComponent(Line);
 	var YOffset:Vector3 = Vector3(0,2,0);
 
-	line.SetWidth(1);
+	line.SetWidth(0.2);
 	line.SetColor(color);
 	line.SetPoints(transform.position+YOffset, AOETargetPosition+YOffset);
 }

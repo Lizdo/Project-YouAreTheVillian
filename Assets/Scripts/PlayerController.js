@@ -421,6 +421,7 @@ private var abilityButtonKeyLabelOffsetX:float = 18;
 private var abilityButtonKeyLabelOffsetY:float = 7;
 
 private var normalFontSize:float = 12;
+private var mediumFontSize:float = 20;
 private var bigFontSize:float = 30;
 
 private var abilityButtonTooltipMarginX:float = healthBarMargin;
@@ -506,6 +507,18 @@ function OnGUI () {
 		    GUI.Label(Rect(position,healthBarHeight,healthBarTextWidth,healthBarTextHeight), "Unlock 3rd Ability");
 	    }
 
+	    // Timer
+
+	    var timer:int = Mathf.Floor(Time.time - levelStartTime);
+
+	    var minutes:String = Mathf.Floor(timer / 60).ToString("00");
+	    var seconds:String = (timer % 60).ToString("00");
+
+	    SetGuiColor(MinorTextColor);
+
+	    ratio = 0;
+	    position = healthBarPadding + ratio * (healthBarWidth - healthBarPadding * 2);
+	    GUI.Label(Rect(position,healthBarHeight,healthBarTextWidth,healthBarTextHeight), minutes + ":" + seconds);
 
 	GUI.EndGroup();
 
