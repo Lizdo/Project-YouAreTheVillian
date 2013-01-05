@@ -9,6 +9,15 @@ enum State{
 	UsingAbility
 }
 
+
+enum Ability{
+	BaseAttack,
+	Cleave,
+	Stomp,
+	Avatar
+}
+
+
 class PlayerController extends BaseController{
 
 private var mainCamera:Camera;
@@ -331,7 +340,7 @@ public function AffactedByCurrentAbility(ai:AIController):boolean{
 	return AffectedByAbility(currentAbility, ai);
 }
 
-private function AffectedByAbility(i:Ability, ai:AIController):boolean{
+public function AffectedByAbility(i:Ability, ai:AIController):boolean{
 	// Not dealing damage, not affected by ability
 	if (AbilityDamage[i] == 0){
 		return false;
@@ -356,7 +365,7 @@ private function AffectedByAbility(i:Ability, ai:AIController):boolean{
 	return false;
 }
 
-
+// Check if AI is in Avatar Range
 public function AffectedByAvatar(ai:AIController):boolean{
 	if (!avatar)
 		return false;
@@ -365,6 +374,15 @@ public function AffectedByAvatar(ai:AIController):boolean{
 	if (distance <= AvatarRadius){
 		return true;
 	}
+}
+
+// Used for Tank AI, find a position in Base Attack Cone
+public function PositionInBaseAttackRange(attackRange:float):Vector3{
+	var baseAttackAngle:float = AbilityAngle[Ability.BaseAttack];
+	var randomAngle:float = Random.Range(-baseAttackAngle/2, baseAttackAngle/2);
+
+	var offset:Vector3 = transform.rotation * Quaternion.Euler(0, randomAngle, 0) * Vector3.forward * attackRange;
+	return transform.position - offset;
 }
 
 ///////////////////////////
@@ -637,13 +655,6 @@ private function BackgroundColor():Color{
 ///////////////////////////
 // Abilities
 ///////////////////////////
-
-enum Ability{
-	BaseAttack,
-	Cleave,
-	Stomp,
-	Avatar
-}
 
 private var abilityTargetLocation:Vector3;
 

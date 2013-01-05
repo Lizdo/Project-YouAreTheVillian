@@ -431,6 +431,7 @@ private var AdjucentOffsets:Array = new Array(
 	Vector3(-1,0,-1)
 );
 
+
 private function UpdateMovementTargetSlow(){
 	if (!target)
 		return;
@@ -440,9 +441,17 @@ private function UpdateMovementTargetSlow(){
 		return;
 	}
 
-	if (TargetInRange())
+	if (TargetInRange() && !NeedForceUpdatePosition())
 		return;
 
+
+	// Simplified Position Check for Tank
+	if (aiClass == AIClass.Tank){
+		targetPosition = PositionForTank();
+		return;
+	}
+
+	// Pathfinding For 
 	// Try to find an un-occupied target position here
 	var positionOnRadius:Vector3 = ClosestPositionOnRadius();
 	targetPosition = positionOnRadius;
@@ -480,6 +489,39 @@ private function UpdateMovementTargetSlow(){
 	// No Position Available, wait next turn
 	print("Target Position Not Found");
 	targetPosition = Vector3.zero;
+}
+
+
+
+// Used for Tank, try to reposition if in the back of the player after a delay.
+private var inBadPosition:boolean;
+private var startTimeInBadPosition:float;
+private var delayToFindNewPosition:float = 8.0;
+
+private function NeedForceUpdatePosition():boolean{
+	if (aiClass == AIClass.Tank){
+		if (!player.AffectedByAbility(Ability.BaseAttack, this)){
+			if (!inBadPosition){
+				inBadPosition = true;
+				startTimeInBadPosition = Time.time;
+			}
+		}else{
+			inBadPosition = false;
+			return false;
+		}
+
+		if (inBadPosition && (Time.time - startTimeInBadPosition) > delayToFindNewPosition){
+			return true;		
+		}
+	}
+
+	return false;
+}
+
+
+private function PositionForTank():Vector3{
+	// Tank will always try to move to player's base attack range
+	return SnapToGround(player.PositionInBaseAttackRange(attackRadius * targetInRangeBuffer));
 }
 
 private function UpdateMovementTargetAvoidPlayer(){
@@ -527,8 +569,13 @@ private function TargetPositionOccupied():boolean{
 }
 
 private function PositionIsValid(){
+	// If I'm the last healer, my position is always valid
+	if (target == this && aiClass == AIClass.Healer)
+		return true;
+
 	if (!target || targetPosition == Vector3.zero)
 		return false;
+
 	var distance:float = Vector3.Distance(Position(), target.Position());
 
 	if (player.state == State.UsingAbility && target == player){
@@ -565,6 +612,8 @@ private function TargetPositionIsValid(){
 private var targetInRangeBuffer:float = 0.8;
 
 private function TargetInRange(){
+	if (target == this && aiClass == AIClass.Healer)
+		return true;
 	var distance:float = Vector3.Distance(Position(), target.Position());
 	return distance >= minAttackRadius && distance <= attackRadius;
 }
