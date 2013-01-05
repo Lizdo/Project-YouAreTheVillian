@@ -304,6 +304,13 @@ private function SpawnAOERing(){
 	AOEText.guiText.text = AOEAbilityName;
 	AOEText.SetColor(AIDamageTextColor);
 	AOEText.SetPosition(AOETargetPosition);
+
+	var line:Line = Instantiate(Resources.Load("Line", GameObject)).GetComponent(Line);
+	var YOffset:Vector3 = Vector3(0,2,0);
+
+	line.SetWidth(1);
+	line.SetColor(color);
+	line.SetPoints(transform.position+YOffset, AOETargetPosition+YOffset);
 }
 
 private function PlayerInAOERadius():boolean{
