@@ -126,8 +126,7 @@ public static var MinorTextColor:Color = ColorWithHex(0x7a7e7e);
 public static var DefaultGUIColor:Color = ColorWithHex(0x742f15);
 public static var DefaultGUIBackgroundColor:Color = ColorWithHex(0xbec5c5);
 
-
-
+public static var ScreenColor:Color = Color.white;//ColorWithHex(0x333227);
 
 
 }

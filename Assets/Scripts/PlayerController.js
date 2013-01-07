@@ -172,6 +172,14 @@ function LevelComplete(){
 	introText.SetText("Victory");
 	introText.FadeIn();
 	yield WaitForSeconds(3);
+
+	var result:String = String.Format("The epic battle took you {0}. Your health remains {1}%.", GameTime(), (HealthRatio() * 100).ToString("00.0"));
+	centerText.SetText(result);
+	centerText.FadeIn();
+
+	yield WaitForSeconds(10);
+
+	centerText.FadeOut();
 	introText.FadeOut();
 	yield WaitForSeconds(3);
 	Application.LoadLevel(0);
@@ -443,8 +451,10 @@ private var abilityButtonTooltipHeight:float = 30;
 private var abilityButtonTooltipWidth:float = abilityButtonSize*4 + abilityButtonPadding*3;
 
 function OnGUI () {
-	if (!levelInitComplete)
+	if (!levelInitComplete){
 		return;
+	}
+
 
 	GUI.skin = skin;
 
@@ -522,16 +532,12 @@ function OnGUI () {
 
 	    // Timer
 
-	    var timer:int = Mathf.Floor(Time.time - levelStartTime);
-
-	    var minutes:String = Mathf.Floor(timer / 60).ToString("00");
-	    var seconds:String = (timer % 60).ToString("00");
 
 	    SetGuiColor(MinorTextColor);
 
 	    ratio = 0;
 	    position = healthBarPadding + ratio * (healthBarWidth - healthBarPadding * 2);
-	    GUI.Label(Rect(position,healthBarHeight,healthBarTextWidth,healthBarTextHeight), minutes + ":" + seconds);
+	    GUI.Label(Rect(position,healthBarHeight,healthBarTextWidth,healthBarTextHeight), GameTime());
 
 	GUI.EndGroup();
 
@@ -637,6 +643,13 @@ function OnGUI () {
 
 }
 
+private function GameTime(){
+	var timer:int = Mathf.Floor(Time.time - levelStartTime);
+	var minutes:String = Mathf.Floor(timer / 60).ToString("00");
+	var seconds:String = (timer % 60).ToString("00");
+	return minutes + ":" + seconds;
+}
+
 private var combatLogLines:Array;
 private var maxCombatLogLineCount:int = 10;
 
@@ -666,6 +679,20 @@ private function SetGuiColor(c:Color){
 
 	var alpha:float = Mathf.Lerp(0,1,(Time.time - guiFadeStartTime)/guiFadeTime);
 	alpha = Mathf.Min(c.a, alpha);
+
+	c.a = alpha;
+
+	GUI.color = c;
+}
+
+private function ReverseGuiColor(c:Color){
+	if (!guiFading){
+		GUI.color = c;
+		return;
+	}
+
+	var alpha:float = Mathf.Lerp(1,0,(Time.time - guiFadeStartTime)/guiFadeTime);
+	alpha = Mathf.Max(c.a, alpha);
 
 	c.a = alpha;
 
@@ -875,9 +902,13 @@ private var AvatarDuration:float = 30;
 private var AvatarRadius:float = 20;
 
 private function ResolveAbility(){
-	var enemyInRange:Array= EnemyInAbilityRange();
-	if (enemyInRange.length == 0 && AbilityTargetNumber[currentAbility] != 0){
-		PopupText("Miss...");
+	var enemyInRange:Array = EnemyInAbilityRange();
+	
+	if (AbilityTargetNumber[currentAbility] != 0){
+		if (!target || target.isDead){
+			// 
+			PopupText("Miss...");
+		}
 	}
 
 	for (var ai:AIController in enemyInRange){
@@ -962,6 +993,9 @@ private function DealDamageToTarget(ai:AIController){
 	if (avatar){
 		damageMultiplier *= 1;
 	}
+
+	if (debugMode)
+		damageMultiplier *= 10;
 
 	var amount:float = Mathf.Round(AbilityDamage[currentAbility] * damageMultiplier);
 	print("Damaging" + ai.ToString());

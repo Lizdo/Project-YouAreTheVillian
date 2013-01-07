@@ -61,3 +61,11 @@ Lots of feedbacks from the first playtest. V0.2 Updated and ready for testing. :
     - Prioritize Low HP Target
     - Intro Screen
     - AI Will Try to Keep Distance from Player
+    
+#### Update (1/7)
+
+- Playtest 2 Feedbacks
+    - More AI Tweaks
+    - Added Rage Timer
+    - Miss If No Current Target
+    - Enemy Ability Hint

@@ -304,9 +304,17 @@ private var AOERingOffset:float = 5;
 
 
 private function SpawnAOERing(){
+
+	AOETargetPosition = player.Position() + Vector3(AOERingOffset * Random.value, 0.1, AOERingOffset * Random.value);
+
+	var aoeCube:AOECube = Instantiate(Resources.Load("AOECube", GameObject), transform.position, Quaternion.identity).GetComponent(AOECube);
+	//aoeCube.renderer.material.color = AIDamageTextColor;
+	aoeCube.SetTarget(AOETargetPosition);
+
+	yield WaitForSeconds(0.8);
+
 	AOERing = Instantiate(Resources.Load("Ring", GameObject)).GetComponent(Ring);
 	// Slight offset to the player position
-	AOETargetPosition = player.Position() + Vector3(AOERingOffset * Random.value, 0.1, AOERingOffset * Random.value);
 
 	AOERing.SetColor(AIDamageTextColor);
 	AOERing.SetPositionAndRadius(AOETargetPosition, AOERadius);
@@ -317,12 +325,14 @@ private function SpawnAOERing(){
 	AOEText.SetColor(AIDamageTextColor);
 	AOEText.SetPosition(AOETargetPosition);
 
-	var line:Line = Instantiate(Resources.Load("Line", GameObject)).GetComponent(Line);
-	var YOffset:Vector3 = Vector3(0,2,0);
+	// var line:Line = Instantiate(Resources.Load("Line", GameObject)).GetComponent(Line);
+	// var YOffset:Vector3 = Vector3(0,2,0);
 
-	line.SetWidth(0.2);
-	line.SetColor(color);
-	line.SetPoints(transform.position+YOffset, AOETargetPosition+YOffset);
+	// line.SetWidth(0.2);
+	// line.SetColor(color);
+	// line.SetPoints(transform.position+YOffset, AOETargetPosition+YOffset);
+
+
 }
 
 private function PlayerInAOERadius():boolean{
