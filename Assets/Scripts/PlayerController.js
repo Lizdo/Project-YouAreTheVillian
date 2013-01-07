@@ -102,6 +102,7 @@ function LevelInit(){
 	introText.FadeIn();
 
 	yield WaitForSeconds(1.5);
+	levelStartTime = Time.time;	
 	introFadeComplete = true;
 }
 
@@ -151,7 +152,6 @@ function LevelStart(){
 
 	levelInitComplete = true;
 	guiFadeStartTime = Time.time;
-	levelStartTime = Time.time;
 	guiFading = true;
 
 	SpawnAI();
@@ -195,10 +195,16 @@ function LevelFailed(){
 }
 
 private var EnrageHealthRatio:float = 0.25;
-
+private var debugMode:boolean;
 
 function Update () {
 	if (levelFailed)
+		return;
+
+	// Still Update Input even before levelStart, to bypass the intro screen
+	UpdateInput();
+
+	if (!levelStarted)
 		return;
 
 	if (HealthRatio() < 0.75 && !phaseTwoStarted){
@@ -213,11 +219,13 @@ function Update () {
 
 	if (!enraged && HealthRatio() < EnrageHealthRatio){
 		// Coroutine to enter rage mode, only fire once
+		print("HP < 25%, Enrage!");
 		StartCoroutine("Enrage");
 	}
 
 	if (!enraged && (Time.time - levelStartTime) > 180){
-		// Also Enrage After 2 Minutes
+		// Also Enrage After 3 Minutes
+		print("3 minute is up, Enrage!");
 		StartCoroutine("Enrage");
 	}
 
@@ -233,7 +241,6 @@ function Update () {
 		return;
 	}
 
-	UpdateInput();
 	UpdateTarget();
 	if (state != State.UsingAbility)
 		UpdateMovement();
@@ -241,6 +248,12 @@ function Update () {
 
 	if (levelInitComplete){
 		CheckVictoryCondition();
+	}
+
+	if (debugMode){
+		Time.timeScale = 4.0;
+	}else{
+		Time.timeScale = 1.0;
 	}
 }
 
@@ -728,6 +741,13 @@ private function TankAlive():boolean{
 }
 
 private function ClosestEnemyInBaseAttackRange():AIController{
+	// Return Tank First
+	var tank:AIController = TankInBaseAttackRange();
+	if (tank){
+		return tank;
+	}
+
+	// go through all the AIs to find the closest one
 	var closestDistance:float = 30;
 	var closestAI:AIController;
 
@@ -746,7 +766,25 @@ private function ClosestEnemyInBaseAttackRange():AIController{
 }
 
 
+private function TankInBaseAttackRange():AIController{
+	for (var ai:AIController in AIs){
+		if (!ai || ai.isDead)
+			continue;
+		if (ai.aiClass == AIClass.Tank){
+			if (AffectedByAbility(Ability.BaseAttack, ai))
+				return ai;
+		}
+	}
+}
+
 private function LowestHPEnemyInBaseAttackRange(){
+	// Return Tank First
+	var tank:AIController = TankInBaseAttackRange();
+	if (tank){
+		return tank;
+	}
+
+	// No tank found, go through the full AI List
 	var lowstHPRatio:float = 10;
 	var closestAI:AIController;
 
@@ -1112,6 +1150,10 @@ private function UpdateInput () {
 			levelStarted = true;
 			LevelStart();
 		}
+	}
+
+	if (Input.GetKey(KeyCode.I)){
+		debugMode = !debugMode;
 	}
 
 	if (Input.GetKey(KeyCode.Mouse0)){

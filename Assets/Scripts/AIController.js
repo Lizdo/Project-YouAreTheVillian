@@ -183,9 +183,9 @@ private function UpdateAI(){
 
 	// Base Attack
 	if (!avoidingPlayer && !attackInProgress && PositionIsValid()){
-		if (aiClass == AIClass.DPS && Random.value < dpsAOEProbability){
+		if (CanAOEAttack()){
 			AOEAttack();
-		}else if (aiClass == AIClass.Tank && Random.value < tankTauntProbability && !player.taunted && (Time.time - lastTaunted > minimumTauntDelay)){
+		}else if (CanTaunt()){
 			lastTaunted = Time.time;
 			Taunt();
 		}else{
@@ -204,6 +204,18 @@ private function UpdateAI(){
 			UpdateHealerAI();
 			break;
 	}
+}
+
+private function CanAOEAttack():boolean{
+	return aiClass == AIClass.DPS && Random.value < dpsAOEProbability;
+}
+
+private function CanTaunt():boolean{
+
+	return (aiClass == AIClass.Tank)
+	&& (Random.value < tankTauntProbability)
+	&& !player.taunted 
+	&& (Time.time - lastTaunted) > minimumTauntDelay;
 }
 
 private var avoidanceCooldown:float = 2; // Continue to avoid after the delay
@@ -240,7 +252,7 @@ private function Attack(){
 	yield WaitForAnimation("Attack", 0.6, true);
 	DealDamage();
 	//yield WaitForAnimation("Attack", 0.99, false);
-	yield WaitForSeconds(Random.value * 0.5 + 0.1);
+	yield WaitForSeconds(Random.Range(0.2,1.0));
 	attackInProgress = false;
 }
 
